@@ -1,0 +1,37 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+
+// Import Pages
+import HomePage from './pages/HomePage';
+import TeamsPage from './pages/TeamsPage';
+import PlayersPage from './pages/PlayersPage';
+import AuctionsPage from './pages/AuctionsPage';
+import BidsPage from './pages/BidsPage';
+import SponsorsPage from './pages/SponsorsPage';
+import VenuesPage from './pages/VenuesPage';
+import PlayerStatsPage from './pages/PlayerStatsPage';
+import TeamPlayersPage from './pages/TeamPlayersPage';
+
+
+function App() {
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/auctions" element={<AuctionsPage />} />
+          <Route path="/bids" element={<BidsPage />} />
+          <Route path="/sponsors" element={<SponsorsPage />} />
+          <Route path="/venues" element={<VenuesPage />} />
+          <Route path="/player-stats" element={<PlayerStatsPage />} />
+          <Route path="/team-players" element={<TeamPlayersPage />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
+
+export default App;
