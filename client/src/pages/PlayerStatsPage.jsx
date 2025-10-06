@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchStatsBySeason } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
+import InfoCards from '../components/ui/InfoCards';
 
 const PlayerStatsPage = () => {
   const [stats, setStats] = useState([]);
@@ -52,35 +53,34 @@ const PlayerStatsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-bounce text-6xl mb-4">📊</div>
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-xl text-blue-300 font-semibold">Loading statistics...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-400 border-t-transparent mx-auto mb-3"></div>
+          <p className="text-lg text-blue-300 font-semibold">Loading statistics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 px-4 py-8">
+    <div className="page-container px-4 py-8">
       <div className="container mx-auto max-w-7xl">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mb-6 shadow-2xl">
-            <span className="text-3xl">📊</span>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mb-4 shadow-2xl">
+            <span className="text-2xl">📊</span>
           </div>
-          <h1 className="text-6xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-tight">
+          <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-tight">
             Player Statistics
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Dive deep into player performance metrics and season-by-season analytics
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-6 rounded-full"></div>
         </div>
 
         {/* Season Selector */}
-        <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-8 mb-8">
+        <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="mb-4 md:mb-0">
               <h2 className="text-2xl font-bold text-white mb-2">Season Analytics</h2>
@@ -91,7 +91,7 @@ const PlayerStatsPage = () => {
               <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
-                className="bg-gray-800 border border-gray-600 rounded-xl px-6 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg font-semibold min-w-[120px]"
+                className="bg-gray-800 border border-gray-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg font-semibold min-w-[120px]"
               >
                 {availableSeasons.map(s => (
                   <option key={s} value={s}>IPL {s}</option>
@@ -102,77 +102,62 @@ const PlayerStatsPage = () => {
         </div>
 
         {error && (
-          <div className="bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-xl p-6 mb-8 text-center">
-            <div className="text-red-400 text-4xl mb-3">📈</div>
+          <div className="bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-xl p-6 mb-6 text-center">
+            <div className="text-red-400 text-3xl mb-3">📈</div>
             <p className="text-red-300 text-lg font-medium">{error}</p>
           </div>
         )}
 
         {!loading && stats.length > 0 && (
           <>
-            {/* Overview Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-              <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 backdrop-blur-sm border border-green-400/30 rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 shadow-xl">
-                <div className="text-4xl font-bold text-green-400 mb-2">{stats.length}</div>
-                <div className="text-gray-300 font-semibold">Active Players</div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 backdrop-blur-sm border border-blue-400/30 rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 shadow-xl">
-                <div className="text-4xl font-bold text-blue-400 mb-2">{totalRuns.toLocaleString()}</div>
-                <div className="text-gray-300 font-semibold">Total Runs</div>
-              </div>
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm border border-purple-400/30 rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 shadow-xl">
-                <div className="text-4xl font-bold text-purple-400 mb-2">{totalWickets}</div>
-                <div className="text-gray-300 font-semibold">Total Wickets</div>
-              </div>
-              <div className="bg-gradient-to-br from-orange-500/20 to-red-600/20 backdrop-blur-sm border border-orange-400/30 rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 shadow-xl">
-                <div className="text-4xl font-bold text-orange-400 mb-2">{avgStrikeRate.toFixed(1)}</div>
-                <div className="text-gray-300 font-semibold">Avg Strike Rate</div>
-              </div>
-            </div>
+            {/* Season Analytics: top summary cards */}
+            <InfoCards items={[
+              { label: 'Active Players', value: stats.length },
+              { label: 'Total Runs', value: totalRuns.toLocaleString() },
+              { label: 'Total Wickets', value: totalWickets }
+            ]} />
 
-            {/* Top Performers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              <div className="bg-gradient-to-br from-yellow-500/20 to-orange-600/20 backdrop-blur-sm border border-yellow-400/30 rounded-2xl p-8">
-                <div className="flex items-center mb-4">
-                  <span className="text-4xl mr-4">👑</span>
+            {/* Top Performers stat-cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="stat-card">
+                <div className="flex items-center mb-3">
+                  <div style={{fontSize:28, marginRight:12}}>👑</div>
                   <div>
-                    <h3 className="text-2xl font-bold text-yellow-400">Top Scorer</h3>
-                    <p className="text-gray-400">Leading run scorer this season</p>
+                    <div className="stat-title">Top Scorer</div>
+                    <div className="stat-sub">Leading run scorer this season</div>
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-2">{topScorer.Player_Name}</div>
-                  <div className="text-5xl font-extrabold text-yellow-400 mb-2">{topScorer.Runs}</div>
-                  <div className="text-gray-300">runs in {topScorer.Matches_Played} matches</div>
-                  <div className="text-sm text-gray-400 mt-2">Strike Rate: {topScorer.Strike_Rate}</div>
+                  <div className="stat-value">{topScorer.Runs || 0}</div>
+                  <div className="text-white font-semibold mt-2">{topScorer.Player_Name || 'N/A'}</div>
+                  <div className="stat-sub">{topScorer.Matches_Played ? `${topScorer.Matches_Played} matches` : ''}</div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-red-500/20 to-pink-600/20 backdrop-blur-sm border border-red-400/30 rounded-2xl p-8">
-                <div className="flex items-center mb-4">
-                  <span className="text-4xl mr-4">🎯</span>
+              <div className="stat-card">
+                <div className="flex items-center mb-3">
+                  <div style={{fontSize:28, marginRight:12}}>🎯</div>
                   <div>
-                    <h3 className="text-2xl font-bold text-red-400">Top Wicket Taker</h3>
-                    <p className="text-gray-400">Leading wicket taker this season</p>
+                    <div className="stat-title">Top Wicket Taker</div>
+                    <div className="stat-sub">Leading wicket taker this season</div>
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-2">{topWicketTaker.Player_Name}</div>
-                  <div className="text-5xl font-extrabold text-red-400 mb-2">{topWicketTaker.Wickets}</div>
-                  <div className="text-gray-300">wickets in {topWicketTaker.Matches_Played} matches</div>
-                  <div className="text-sm text-gray-400 mt-2">Economy: {topWicketTaker.Economy}</div>
+                  <div className="stat-value">{topWicketTaker.Wickets || 0}</div>
+                  <div className="text-white font-semibold mt-2">{topWicketTaker.Player_Name || 'N/A'}</div>
+                  <div className="stat-sub">{topWicketTaker.Matches_Played ? `${topWicketTaker.Matches_Played} matches` : ''}</div>
                 </div>
               </div>
             </div>
 
             {/* Performance Categories */}
-            <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-8">
+            <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
               <h3 className="text-xl font-bold text-white mb-4">Quick Filters</h3>
               <div className="flex flex-wrap gap-3">
                 <button 
                   onClick={() => setSortBy('runs')}
                   className={`px-4 py-2 rounded-lg border transition-all ${sortBy === 'runs' 
-                    ? 'bg-blue-500/30 border-blue-400/50 text-blue-300' 
+                    ? 'btn-accent' 
                     : 'bg-gray-800 border-gray-600 text-gray-400 hover:text-white'}`}
                 >
                   Top Run Scorers
@@ -180,7 +165,7 @@ const PlayerStatsPage = () => {
                 <button 
                   onClick={() => setSortBy('wickets')}
                   className={`px-4 py-2 rounded-lg border transition-all ${sortBy === 'wickets' 
-                    ? 'bg-red-500/30 border-red-400/50 text-red-300' 
+                    ? 'btn-accent' 
                     : 'bg-gray-800 border-gray-600 text-gray-400 hover:text-white'}`}
                 >
                   Top Wicket Takers
@@ -188,7 +173,7 @@ const PlayerStatsPage = () => {
                 <button 
                   onClick={() => setSortBy('strike_rate')}
                   className={`px-4 py-2 rounded-lg border transition-all ${sortBy === 'strike_rate' 
-                    ? 'bg-green-500/30 border-green-400/50 text-green-300' 
+                    ? 'btn-accent' 
                     : 'bg-gray-800 border-gray-600 text-gray-400 hover:text-white'}`}
                 >
                   Best Strike Rates
@@ -196,7 +181,7 @@ const PlayerStatsPage = () => {
                 <button 
                   onClick={() => setSortBy('economy')}
                   className={`px-4 py-2 rounded-lg border transition-all ${sortBy === 'economy' 
-                    ? 'bg-purple-500/30 border-purple-400/50 text-purple-300' 
+                    ? 'btn-accent' 
                     : 'bg-gray-800 border-gray-600 text-gray-400 hover:text-white'}`}
                 >
                   Best Economy
@@ -205,10 +190,10 @@ const PlayerStatsPage = () => {
             </div>
 
             {/* Table Section */}
-            <div className="bg-black/30 backdrop-blur-md border border-gray-600/30 rounded-3xl p-8 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-black/30 backdrop-blur-md border border-gray-600/30 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Season {season} Statistics</h2>
+                  <h2 className="text-2xl font-bold text-white mb-1">Season {season} Statistics</h2>
                   <p className="text-gray-400">Comprehensive player performance data</p>
                 </div>
                 <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg px-4 py-2">

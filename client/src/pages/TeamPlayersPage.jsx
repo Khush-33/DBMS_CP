@@ -6,8 +6,8 @@ const TeamPlayersPage = () => {
   const [squad, setSquad] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Fetch the list of teams for the dropdown
@@ -35,8 +35,14 @@ const TeamPlayersPage = () => {
         const response = await fetchSquadByTeam(selectedTeam);
         setSquad(response.data);
       } catch (err) {
-        setError(`Failed to fetch squad for the selected team.`);
-        setSquad([]);
+        if (err && err.response && err.response.status === 404) {
+          // No players for this team; show empty state without error banner
+          setError(null);
+          setSquad([]);
+        } else {
+          setError(`Failed to fetch squad for the selected team.`);
+          setSquad([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -56,27 +62,58 @@ const TeamPlayersPage = () => {
     Price: `₹ ${(player.Price / 10000000).toFixed(2)} Cr`
   }));
 
-  return (
-    <div>
-      <h1 className="text-4xl font-bold mb-6 text-center tracking-wide">Team Squads</h1>
-      <div className="flex justify-center mb-6">
-        <label htmlFor="team" className="mr-2 self-center font-semibold">Select Team:</label>
-        <select
-          id="team"
-          value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-          className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
-        >
-          <option value="" disabled>-- Select a Team --</option>
-          {teams.map(team => (
-              <option key={team.Team_ID} value={team.Team_ID}>{team.Team_Name}</option>
-          ))}
-        </select>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-cyan-400 border-t-transparent mx-auto mb-3"></div>
+        <p className="text-lg text-gray-300">Loading players...</p>
       </div>
+    </div>
+  );
 
-      {loading && <p className="text-center">Loading squad...</p>}
-      {error && <p className="text-center text-red-500">{error}</p>}
-      {!loading && <CustomTable columns={columns} data={formattedSquad} />}
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-red-600/10 border border-red-600/20 rounded-xl p-6 text-center">
+        <div className="text-red-400 font-semibold mb-2">{error}</div>
+        <button onClick={() => window.location.reload()} className="btn btn-secondary">Retry</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page-container px-4 py-8">
+      <div className="container mx-auto max-w-6xl">
+        <header className="mb-6 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2">Team Players</h1>
+          <p className="text-gray-400">Browse players by team. Choose a team to see its squad.</p>
+        </header>
+
+        <div className="mb-6">
+          <div className="filter-bar">
+            <div className="group">
+              <span className="filter-label">Team</span>
+              <select className="select-primary" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
+                <option value="">-- Select Team --</option>
+                {teams.map((t) => (
+                  <option value={t.Team_ID} key={t.Team_ID}>{t.Team_Name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="group">
+              <button onClick={() => { if(selectedTeam) { setSelectedTeam(selectedTeam); } }} className="btn-accent">Apply</button>
+              <button onClick={() => { setSelectedTeam(''); setSquad([]); }} className="btn-outline">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <section className="bg-black/30 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-6 shadow-lg">
+          {formattedSquad.length === 0 ? (
+            <div className="text-center text-gray-400">No players for selected team.</div>
+          ) : (
+            <CustomTable columns={columns} data={formattedSquad} />
+          )}
+        </section>
+      </div>
     </div>
   );
 };

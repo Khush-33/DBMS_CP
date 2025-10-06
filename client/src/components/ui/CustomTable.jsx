@@ -6,7 +6,7 @@ const CustomTable = ({ columns, data }) => {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg shadow-lg ring-1 ring-white/10 bg-gray-900/50 backdrop-blur-lg">
+    <div className="overflow-x-auto rounded-lg shadow-lg ring-1 ring-white/10 bg-gray-900/50 backdrop-blur-lg animate-fade-in-up">
       <table className="min-w-full">
         <thead className="bg-gray-900/80">
           <tr>
@@ -19,10 +19,12 @@ const CustomTable = ({ columns, data }) => {
         </thead>
         <tbody className="divide-y divide-white/10">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-800/60 transition-colors duration-200">
+            <tr key={rowIndex} className="group hover:bg-gray-800/60 transition-colors duration-200">
               {columns.map((col, colIndex) => (
                 <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  {row[col.accessor]}
+                  <span className="inline-block transition-transform group-hover:translate-x-1">
+                    {row[col.accessor]}
+                  </span>
                 </td>
               ))}
             </tr>
