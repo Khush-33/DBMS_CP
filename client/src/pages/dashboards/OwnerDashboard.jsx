@@ -1,23 +1,53 @@
 import React from 'react';
-import { BidButton } from '../../components/ui/PrimaryButton';
+import { ActionButton } from '../../components/ui/PrimaryButton';
 
 const OwnerDashboard = () => {
   return (
-    <div className="container">
-      <div className="relative overflow-hidden card-elevated p-6 rounded-xl mb-8">
-        <h2 className="text-3xl font-extrabold gradient-text">Owner & Manager</h2>
-        <p className="text-gray-300 mt-2">Bid on players and manage your squad.</p>
-      </div>
-      <div className="grid" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
-        <div className="stat-card">
-          <div className="stat-title">Quick Actions</div>
-          <div style={{display:'flex', gap: 8, marginTop: 10}}>
-            <BidButton to="/live-auction">Open Live Auction</BidButton>
+    <div className="min-h-screen py-8">
+      <div className="container">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold mb-3">Owner Dashboard</h1>
+          <p className="text-gray-400">Manage your team, bid on players, and track your squad</p>
+        </header>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="card">
+            <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
+            <div className="flex gap-3">
+              <ActionButton to="/live-auction">🔴 Live Auction</ActionButton>
+              <ActionButton to="/team-players">View Squad</ActionButton>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 className="text-2xl font-bold mb-4">Team Overview</h2>
+            <p className="text-gray-400">
+              Access your team details, budget information, and player roster from the Teams and Squads sections.
+            </p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-title">Squad Summary</div>
-          <div className="stat-sub">View your current players and budgets in Teams/Squads</div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="card text-center">
+            <div className="text-4xl mb-3">👥</div>
+            <h3 className="text-lg font-semibold mb-2">Players</h3>
+            <p className="text-gray-400 text-sm mb-4">Browse available players</p>
+            <ActionButton to="/players" size="small">View Players</ActionButton>
+          </div>
+
+          <div className="card text-center">
+            <div className="text-4xl mb-3">💰</div>
+            <h3 className="text-lg font-semibold mb-2">Budget</h3>
+            <p className="text-gray-400 text-sm mb-4">Track team spending</p>
+            <ActionButton to="/teams" size="small">View Budget</ActionButton>
+          </div>
+
+          <div className="card text-center">
+            <div className="text-4xl mb-3">📊</div>
+            <h3 className="text-lg font-semibold mb-2">Statistics</h3>
+            <p className="text-gray-400 text-sm mb-4">Player performance data</p>
+            <ActionButton to="/player-stats" size="small">View Stats</ActionButton>
+          </div>
         </div>
       </div>
     </div>

@@ -79,24 +79,23 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="relative overflow-hidden card-elevated p-8 rounded-2xl animate-fade-in-scale">
-          <div className="absolute -top-1/2 -right-1/4 w-3/4 h-3/4 bg-blue-900/30 rounded-full filter blur-3xl animate-pulse"></div>
-          <div className="relative z-10">
-            <h1 className="text-6xl font-extrabold gradient-text">Premier League Auction</h1>
-            <p className="text-gray-300 mt-3 max-w-2xl">Modern, professional live auction platform with real-time bidding, analytics, and team management tools.</p>
-            <div className="mt-6 flex items-center gap-3">
-              <ActionButton to="/live-auction">Go Live</ActionButton>
-              <OutlineButton to="/players">Explore Players</OutlineButton>
-            </div>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="container py-16">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl font-bold mb-6">IPL Auction Platform</h1>
+          <p className="text-xl text-gray-300 mb-8">
+            Professional auction management system for teams, players, and live bidding
+          </p>
+          <div className="flex justify-center gap-4">
+            <ActionButton to="/live-auction">Start Live Auction</ActionButton>
+            <OutlineButton to="/players">Browse Players</OutlineButton>
           </div>
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-4">
-        {/* Top summary cards (dynamic) */}
+      <main className="container py-8">
+        {/* Stats Summary */}
         <InfoCards items={[
           { label: 'Teams Active', value: stats.teams, loading },
           { label: 'Players', value: stats.players, loading },
@@ -104,65 +103,91 @@ const HomePage = () => {
           { label: 'Bids', value: stats.bids, loading }
         ]} />
 
-        {/* Sports / Navigation cards */}
-        <section className="my-8 animate-fade-in-up">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <SportsCard title="Teams" subtitle="10 Franchises" image={<Icon name="teams" />} category="Teams" link="/teams" stats={[{value: "10", label: "Teams"}, {value: "₹90Cr", label: "Budget"}]} />
-            <SportsCard title="Players" subtitle="Star Athletes" image={<Icon name="players" />} category="Players" link="/players" stats={[{value: "250+", label: "Players"}, {value: "₹156Cr", label: "Sold"}]} />
-            <SportsCard title="Auctions" subtitle="Live Bidding" image={<Icon name="auctions" />} category="Auctions" link="/auctions" stats={[{value: "87", label: "Sold"}, {value: "23", label: "Unsold"}]} />
-            <SportsCard title="Statistics" subtitle="Live Data" image={<Icon name="stats" />} category="Stats" link="/stats" stats={[{value: "Live", label: "Updates"}, {value: "Real", label: "Time"}]} />
-          </div>
+        {/* Quick Access Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in-up">
+          <Link to="/teams" className="card text-center group">
+            <div className="text-4xl mb-3">🏆</div>
+            <h3 className="text-lg font-semibold mb-2">Teams</h3>
+            <p className="text-gray-400 text-sm">Manage franchises and budgets</p>
+          </Link>
+          
+          <Link to="/players" className="card text-center group">
+            <div className="text-4xl mb-3">👥</div>
+            <h3 className="text-lg font-semibold mb-2">Players</h3>
+            <p className="text-gray-400 text-sm">Browse player database</p>
+          </Link>
+          
+          <Link to="/auctions" className="card text-center group">
+            <div className="text-4xl mb-3">⚡</div>
+            <h3 className="text-lg font-semibold mb-2">Auctions</h3>
+            <p className="text-gray-400 text-sm">View auction history</p>
+          </Link>
+          
+          <Link to="/player-stats" className="card text-center group">
+            <div className="text-4xl mb-3">📊</div>
+            <h3 className="text-lg font-semibold mb-2">Statistics</h3>
+            <p className="text-gray-400 text-sm">Player performance data</p>
+          </Link>
         </section>
 
-        {/* Content grid: main + sidebar (both card-based) */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 animate-fade-in-up">
-            <SectionBox className="mb-6">
-              <div className="p-4">
-                <h3 className="text-2xl font-bold text-white mb-2">Featured</h3>
-                <p className="text-gray-300">Record-Breaking Bid! Virat Kohli Sold for ₹17 Crores to RCB</p>
-              </div>
-            </SectionBox>
-
-            <SectionBox>
-              <h3 className="text-xl font-bold text-white mb-4">Latest Updates</h3>
+        {/* Featured Section */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+          <div className="lg:col-span-2">
+            <div className="card mb-6">
+              <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <NewsCard title="Mumbai Indians Complete Squad with Strategic Picks" excerpt="MI focuses on building a balanced team with key acquisitions in bowling department." category="Auctions" time="4 hours ago" image="🔵" />
-                <NewsCard title="CSK's Auction Strategy Pays Off with Young Talents" excerpt="Chennai Super Kings invest heavily in emerging players for future seasons." category="Teams" time="6 hours ago" image="💛" />
-                <NewsCard title="Record Prize Money Announced for IPL 2024" excerpt="BCCI increases the prize pool significantly for the upcoming season." category="News" time="8 hours ago" image="💰" />
+                <div className="pb-4 border-b border-gray-800">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold">Record-Breaking Bid</h3>
+                    <span className="text-sm text-gray-400">2 hours ago</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    Star player acquired for ₹17 Crores in intense bidding war
+                  </p>
+                </div>
+                
+                <div className="pb-4 border-b border-gray-800">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold">Squad Complete</h3>
+                    <span className="text-sm text-gray-400">5 hours ago</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    Mumbai Indians finalize their 25-player roster
+                  </p>
+                </div>
+                
+                <div className="pb-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold">New Auction Scheduled</h3>
+                    <span className="text-sm text-gray-400">1 day ago</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    Next auction session begins February 15, 2024
+                  </p>
+                </div>
               </div>
-            </SectionBox>
+            </div>
           </div>
 
-          <aside className="animate-fade-in-up">
-            <SectionBox className="mb-6">
-              <h3 className="text-xl font-bold text-white mb-4">Live Scores</h3>
+          <aside>
+            <div className="card mb-6">
+              <h3 className="text-xl font-bold mb-4">Top Players</h3>
               <div className="space-y-3">
-                <div className="p-3 glass rounded-lg">
-                  <div className="font-semibold text-white">MI vs CSK</div>
-                  <div className="text-sm text-gray-300">180/4 (18.2 overs)</div>
-                </div>
-                <div className="p-3 glass rounded-lg">
-                  <div className="font-semibold text-white">RCB vs KKR</div>
-                  <div className="text-sm text-gray-300">Tomorrow • 7:30 PM</div>
-                </div>
-              </div>
-            </SectionBox>
-
-            <SectionBox>
-              <h3 className="text-xl font-bold text-white mb-4">Top Sold Players</h3>
-              <div className="space-y-3">
-                {[{ name: 'Virat Kohli', team: 'RCB', price: '₹17 Cr' }, { name: 'MS Dhoni', team: 'CSK', price: '₹15 Cr' }].map((p, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-transparent">
+                {[
+                  { name: 'Virat Kohli', team: 'RCB', price: '₹17 Cr' },
+                  { name: 'MS Dhoni', team: 'CSK', price: '₹15 Cr' },
+                  { name: 'Rohit Sharma', team: 'MI', price: '₹16 Cr' }
+                ].map((p, i) => (
+                  <div key={i} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
                     <div>
-                      <div className="font-semibold text-white">{p.name}</div>
-                      <div className="text-sm text-gray-300">{p.team}</div>
+                      <div className="font-semibold">{p.name}</div>
+                      <div className="text-sm text-gray-400">{p.team}</div>
                     </div>
-                    <div className="font-bold text-white">{p.price}</div>
+                    <div className="font-bold text-primary">{p.price}</div>
                   </div>
                 ))}
               </div>
-            </SectionBox>
+            </div>
           </aside>
         </div>
       </main>

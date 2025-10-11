@@ -1,42 +1,52 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Footer = () => {
   return (
     <footer className="footer">
-      <div className="container footer-grid">
-        <div>
-          <div className="brand-title">Cricket Auction</div>
-          <div className="footer-desc">Premium platform for franchise auctions and player analytics.</div>
-        </div>
+      <div className="container">
+        <div className="footer-grid">
+          <div>
+            <h3 className="footer-section-title">IPL Auction</h3>
+            <p style={{ color: 'var(--gray-400)', marginBottom: '1rem', maxWidth: '300px' }}>
+              Professional cricket auction platform for teams, players, and franchise management.
+            </p>
+          </div>
 
-        <div>
-          <div className="footer-section-title">Explore</div>
-          <div style={{display:'grid',gap:6}}>
-            <a href="/live-auction">Live Auction</a>
-            <a href="/players">Players</a>
-            <a href="/teams">Teams</a>
+          <div>
+            <h4 className="footer-section-title">Quick Links</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <Link to="/teams">Teams</Link>
+              <Link to="/players">Players</Link>
+              <Link to="/auctions">Auctions</Link>
+              <Link to="/player-stats">Statistics</Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="footer-section-title">Features</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <Link to="/live-auction">Live Bidding</Link>
+              <Link to="/team-players">Squad Management</Link>
+              <Link to="/bids">Bid History</Link>
+              <Link to="/sponsors">Sponsors</Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="footer-section-title">Support</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <a href="#">Help Center</a>
+              <a href="#">Documentation</a>
+              <a href="#">Contact Us</a>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div className="footer-section-title">Company</div>
-          <div style={{display:'grid',gap:6}}>
-            <a href="#">About</a>
-            <a href="#">Careers</a>
-            <a href="#">Contact</a>
-          </div>
-        </div>
-
-        <div>
-          <div className="footer-section-title">Stay Updated</div>
-          <div className="newsletter">
-            <input className="newsletter-input" placeholder="Email address" aria-label="Email address" />
-            <button className="btn btn-secondary">Subscribe</button>
-          </div>
+        <div className="copy">
+          © {new Date().getFullYear()} IPL Auction Platform. All rights reserved.
         </div>
       </div>
-
-      <div className="copy">© {new Date().getFullYear()} Cricket Auction. All rights reserved.</div>
     </footer>
   )
 }

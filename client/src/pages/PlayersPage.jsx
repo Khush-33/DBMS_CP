@@ -64,32 +64,24 @@ const PlayersPage = () => {
   );
 
   return (
-    <div className="page-container px-4 py-8 page-bg-players">
-      <div className="container mx-auto max-w-6xl">
-        {/* Hero banner */}
-        <div className="relative overflow-hidden card-elevated p-6 rounded-xl mb-8 animate-fade-in-scale">
-          <div className="absolute -top-1/2 -left-1/4 bg-green-700/30 rounded-full filter blur-3xl animate-pulse" style={{ width: '66%', height: '66%', transform: `translateY(${parallaxY * 0.6}px)` }}></div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-extrabold gradient-text">Discover Players</h2>
-            <p className="text-gray-300 mt-2">Filter through star players and rising talents to build your perfect squad.</p>
-          </div>
-        </div>
-        <header className="mb-8 text-center animate-fade-in-up">
-          <PageTitle>Auction Players</PageTitle>
-          <p className="text-gray-400">Browse all players, their base prices and auction status</p>
+    <div className="min-h-screen py-8">
+      <div className="container">
+        <header className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-3">Players Database</h1>
+          <p className="text-gray-400">Browse all players, base prices, and auction status</p>
         </header>
 
-        <div className="mb-6 animate-fade-in-up">
+        <div className="mb-8">
           <InfoCards items={[
             { label: 'Total Players', value: players.length },
-            { label: 'Sold Players', value: players.filter(p => p.Status === 'Sold').length },
-            { label: 'Unsold Players', value: players.filter(p => p.Status !== 'Sold').length },
+            { label: 'Sold', value: players.filter(p => p.Status === 'Sold').length },
+            { label: 'Unsold', value: players.filter(p => p.Status !== 'Sold').length },
           ]} />
         </div>
 
-        <section className="bg-black/30 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-6 shadow-lg">
+        <div className="card">
           <CustomTable columns={columns} data={formattedPlayers} />
-        </section>
+        </div>
 
         <FranchiseTeams />
       </div>

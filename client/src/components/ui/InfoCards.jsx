@@ -36,9 +36,11 @@ const InfoCards = ({ items = [] }) => {
   return (
     <div className="info-cards">
       {items.map((it, idx) => (
-        <div className={`info-card animate-fade-in-up ${idx === 0 ? 'stagger-1' : idx === 1 ? 'stagger-2' : idx === 2 ? 'stagger-3' : 'stagger-4'}`} key={idx}>
+        <div className="info-card animate-fade-in-up" key={idx}>
           <div className="label">{it.label}</div>
-          <div className="value">{it.loading ? 'Loading...' : <CountUp value={typeof it.value === 'number' ? it.value : Number(it.value) || 0} />}</div>
+          <div className="value">
+            {it.loading ? 'Loading...' : <CountUp value={typeof it.value === 'number' ? it.value : Number(it.value) || 0} />}
+          </div>
           {it.sub && <div className="text-sm text-gray-400 mt-2">{it.sub}</div>}
         </div>
       ))}

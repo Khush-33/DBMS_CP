@@ -64,32 +64,24 @@ const TeamsPage = () => {
   
 
   return (
-    <div className="page-container px-4 py-8 page-bg-teams">
-      <div className="container mx-auto max-w-6xl">
-        {/* Hero banner */}
-        <div className="relative overflow-hidden card-elevated p-6 rounded-xl mb-8 animate-fade-in-scale">
-          <div className="absolute -top-1/2 -right-1/4 bg-blue-700/30 rounded-full filter blur-3xl animate-pulse" style={{ width: '66%', height: '66%', transform: `translateY(${parallaxY * 0.6}px)` }}></div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-extrabold gradient-text">Franchise Teams</h2>
-            <p className="text-gray-300 mt-2">Analyze budgets and manage squads with a cinematic interface.</p>
-          </div>
-        </div>
-        <header className="mb-6 text-center animate-fade-in-up">
-          <PageTitle>IPL Teams</PageTitle>
-          <p className="text-gray-400">Team rosters, ownership and remaining budgets</p>
+    <div className="min-h-screen py-8">
+      <div className="container">
+        <header className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-3">IPL Teams</h1>
+          <p className="text-gray-400">Franchise teams, ownership, and budget management</p>
         </header>
 
-        <div className="mb-6 animate-fade-in-up">
+        <div className="mb-8">
           <InfoCards items={[
-            { label: 'Registered Teams', value: formattedTeams.length },
-            { label: 'Average Budget (Cr)', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)/Math.max(formattedTeams.length,1)).toFixed(2) },
-            { label: 'Total Budget (Cr)', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)).toFixed(2) }
+            { label: 'Total Teams', value: formattedTeams.length },
+            { label: 'Average Budget', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)/Math.max(formattedTeams.length,1)).toFixed(2) + ' Cr' },
+            { label: 'Total Budget', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)).toFixed(2) + ' Cr' }
           ]} />
         </div>
 
-        <section className="bg-black/30 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-6 shadow-lg">
+        <div className="card">
           <CustomTable columns={columns} data={formattedTeams} />
-        </section>
+        </div>
       </div>
     </div>
   );

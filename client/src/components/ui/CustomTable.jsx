@@ -2,29 +2,29 @@ import React from 'react';
 
 const CustomTable = ({ columns, data }) => {
   if (!data || data.length === 0) {
-    return <p className="text-center text-gray-400 mt-8">No data available.</p>;
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-400">No data available.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg shadow-lg ring-1 ring-white/10 bg-gray-900/50 backdrop-blur-lg animate-fade-in-up">
-      <table className="min-w-full">
-        <thead className="bg-gray-900/80">
+    <div className="overflow-x-auto rounded-lg animate-fade-in-up">
+      <table>
+        <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.accessor} scope="col" className="px-6 py-4 text-left text-xs font-semibold text-amber-400 uppercase tracking-wider">
-                {col.Header}
-              </th>
+              <th key={col.accessor}>{col.Header}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/10">
+        <tbody>
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="group hover:bg-gray-800/60 transition-colors duration-200">
+            <tr key={rowIndex}>
               {columns.map((col, colIndex) => (
-                <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  <span className="inline-block transition-transform group-hover:translate-x-1">
-                    {row[col.accessor]}
-                  </span>
+                <td key={`${rowIndex}-${colIndex}`}>
+                  {row[col.accessor]}
                 </td>
               ))}
             </tr>
