@@ -59,3 +59,4 @@ dump.rdb
 ### Sensitive artifacts from this repo ###
 # Node server process file that might contain credentials
 server.js
+.env
