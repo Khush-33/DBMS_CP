@@ -1,4 +1,5 @@
 /* Premium Professional Design System - IPL Auction Platform */
+@import url('https://fonts.googleapis.com/css2?family=Antic+Didone&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Funnel+Display:wght@300..800&family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=Jersey+15&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Xanh+Mono:ital@0;1&display=swap');
 :root {
   /* Primary Brand Colors - IPL Inspired */
   --primary: #003a91ff;        /* Vibrant blue for primary actions */
