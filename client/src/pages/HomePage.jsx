@@ -83,9 +83,9 @@ const HomePage = () => {
       {/* Hero Section */}
       <section className="container py-16">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold mb-10 m-10" style={{fontFamily : "'Times New Roman', 'serif'", fontWeight: 400,
+          <h1 className="text-5xl font-bold mb-5 m-10" style={{fontFamily : "'Times New Roman', 'serif'", fontWeight: 400,
   fontStyle: 'normal', fontSize: '100px'}}>IPL<br></br> Auction Plat<i>f</i>orm</h1>
-          <p className="text-xl text-gray-300 mb-8" style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
+          <p className="text-m text-gray-300 mb-8" style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
             Professional auction management system for teams, players, and live bidding
           </p>
           <div className="flex justify-center gap-4 mt-10">
@@ -95,7 +95,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <main className="container py-8">
+      <main className="container py-8 ">
         {/* Stats Summary */}
         <InfoCards items={[
           { label: 'Teams Active', value: stats.teams, loading },

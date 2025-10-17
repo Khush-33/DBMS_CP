@@ -130,7 +130,7 @@ a:hover {
 /* Utility Classes */
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 15px auto;
   padding: 0 var(--space-6);
   position: relative;
   isolation: isolate;
@@ -173,6 +173,8 @@ a:hover {
 .mb-4 { margin-bottom: var(--space-4); }
 .mb-6 { margin-bottom: var(--space-6); }
 .mb-8 { margin-bottom: var(--space-8); }
+.mb-10 { margin-bottom: var(--space-10); }
+.mb-15 { margin-bottom: var(--space-15); }
 
 .mt-2 { margin-top: var(--space-2); }
 .mt-4 { margin-top: var(--space-4); }
