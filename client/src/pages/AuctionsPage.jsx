@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { fetchAuctions } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const AuctionsPage = () => {
   const [auctions, setAuctions] = useState([]);
@@ -63,13 +64,11 @@ const AuctionsPage = () => {
   }
 
   return (
-    <div className="page-container px-4 py-8">
-      <div className="container mx-auto max-w-7xl">
+    <div className="page-container px-4 py-8 relative">
+      <BackgroundGlow />
+      <div className="container mx-auto max-w-7xl relative z-10">
         {/* Header Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mb-4 shadow-2xl">
-            <span className="text-2xl">🏏</span>
-          </div>
           <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 tracking-tight">
             IPL Auctions
           </h1>

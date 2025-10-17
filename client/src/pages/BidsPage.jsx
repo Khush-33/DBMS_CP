@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { fetchBids } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const BidsPage = () => {
   const [bids, setBids] = useState([]);
@@ -95,8 +96,9 @@ const BidsPage = () => {
     );
   }
   return (
-    <div className="page-container px-4 py-8">
-      <div className="container mx-auto max-w-7xl">
+    <div className="page-container px-4 py-8 relative">
+      <BackgroundGlow />
+      <div className="container mx-auto max-w-7xl relative z-10">
         {/* Header Section */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mb-4 shadow-2xl animate-pulse">

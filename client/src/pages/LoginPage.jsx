@@ -49,57 +49,102 @@ const LoginPage = () => {
   const selected = roles.find(r => r.id === role);
 
   return (
-    <div className="container" style={{maxWidth: 860, marginTop: 40}}>
-      <div className="relative overflow-hidden card-elevated p-8 rounded-2xl">
-        <div className="absolute -top-1/2 -right-1/4 w-2/3 h-2/3 bg-blue-900/30 rounded-full filter blur-3xl animate-pulse" aria-hidden></div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-extrabold gradient-text">Welcome back</h1>
-          <p className="text-gray-300 mt-2">Sign in to access role-based dashboards and live auctions.</p>
-
-          <form onSubmit={onSubmit} style={{display:'grid', gap: 16, marginTop: 20}}>
-            <div style={{display:'grid', gap: 8}}>
-              <label className="text-sm text-gray-300">Your name</label>
-              <input className="newsletter-input" placeholder="e.g. Rohit" aria-label="Your name" value={username} onChange={(e)=>setUsername(e.target.value)} />
-              {error && <span className="text-sm" style={{color:'#ef4444'}}>{error}</span>}
+    <div className="page-container login-page-wrapper">
+      {/* Animated background elements */}
+      <div className="login-bg-gradient login-bg-1" aria-hidden></div>
+      <div className="login-bg-gradient login-bg-2" aria-hidden></div>
+      
+      <div className="container" style={{maxWidth: 950, marginBottom: 60, position: 'relative', zIndex: 10}}>
+        <div className="login-card">
+          {/* Top decorative elements */}
+          <div className="absolute -top-1/3 -left-1/4 w-96 h-96 bg-blue-900/20 rounded-full filter blur-3xl opacity-60" aria-hidden></div>
+          <div className="absolute -bottom-1/4 -right-1/3 w-80 h-80 bg-cyan-900/20 rounded-full filter blur-3xl opacity-40" aria-hidden></div>
+          
+          <div className="relative z-10">
+            {/* Header Section */}
+            <div className="login-header">
+              <h1 className="text-5xl font-extrabold gradient-text" style={{marginBottom: 12}}>Welcome back</h1>
+              <p className="text-gray-400 text-lg">Sign in to access role-based dashboards and live auctions.</p>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-300">Choose your role</label>
-              <div className="grid" style={{display:'grid', gridTemplateColumns:'repeat(4, minmax(0, 1fr))', gap:12, marginTop:8}}>
-                {roles.map(r => (
-                  <button type="button" key={r.id} onClick={()=>setRole(r.id)} className={`glass rounded-xl p-4 text-left transition-transform ${role===r.id ? 'gradient-border' : ''}`} style={{border: role===r.id ? '1px solid rgba(246,196,83,0.35)' : '1px solid rgba(255,255,255,0.06)'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:10}}>
-                      <div className="w-10 h-10 rounded-lg bg-gray-800/40 flex items-center justify-center text-xl">{r.emoji}</div>
-                      <div>
-                        <div className="text-white font-semibold">{r.title}</div>
-                        <div className="text-gray-400 text-sm">{r.desc}</div>
+            <form onSubmit={onSubmit} style={{display:'grid', gap: 32}}>
+              {/* Name Input */}
+              <div className="form-group">
+                <label className="form-label">Your name</label>
+                <div className="input-wrapper">
+                  <input 
+                    className="login-input" 
+                    placeholder="e.g. Rohit Sharma" 
+                    aria-label="Your name" 
+                    value={username} 
+                    onChange={(e)=>setUsername(e.target.value)} 
+                    type="text"
+                  />
+                  <div className="input-underline"></div>
+                </div>
+                {error && <span className="form-error">{error}</span>}
+              </div>
+
+              {/* Role Selection */}
+              <div className="form-group">
+                <label className="form-label">Choose your role</label>
+                <p className="form-sublabel">Pick a role that best describes your involvement</p>
+                <div className="roles-grid">
+                  {roles.map(r => (
+                    <button 
+                      type="button" 
+                      key={r.id} 
+                      onClick={()=>setRole(r.id)} 
+                      className={`role-card-button ${role===r.id ? 'role-card-active' : ''}`}
+                      aria-pressed={role === r.id}
+                    >
+                      <div className="role-card-inner">
+                        <div className={`role-emoji-badge ${role===r.id ? 'active' : ''}`}>{r.emoji}</div>
+                        <div className="role-content">
+                          <div className="role-title">{r.title}</div>
+                          <div className="role-description">{r.desc}</div>
+                        </div>
+                        {role===r.id && <div className="role-checkmark">✓</div>}
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <div className="text-sm text-gray-400" style={{marginTop:8}}>
-                Selected: <span className="accent-cyan">{selected.title}</span>
-              </div>
-            </div>
-
-            {(role === 'owner' || role === 'manager') && (
-              <div style={{display:'grid', gap:8}}>
-                <label className="text-sm text-gray-300">Select your franchise</label>
-                <select className="newsletter-input" value={teamId} onChange={(e)=>setTeamId(e.target.value)}>
-                  <option value="">-- Select Team --</option>
-                  {teams.map(t => (
-                    <option key={t.Team_ID} value={t.Team_ID}>{t.Team_Name}</option>
+                    </button>
                   ))}
-                </select>
+                </div>
+                <div className="selected-role-badge">
+                  <span className="badge-label">Selected:</span>
+                  <span className="badge-value">{selected.title}</span>
+                </div>
               </div>
-            )}
 
-            <div style={{display:'flex', gap:12, alignItems:'center'}}>
-              <button className="btn btn-secondary" type="submit">Continue</button>
-              <span className="text-gray-400 text-sm">You can change roles later from the navbar.</span>
-            </div>
-          </form>
+              {/* Team Selection */}
+              {(role === 'owner' || role === 'manager') && (
+                <div className="form-group team-selection-animated">
+                  <label className="form-label">Select your franchise</label>
+                  <div className="input-wrapper">
+                    <select 
+                      className="login-input login-select" 
+                      value={teamId} 
+                      onChange={(e)=>setTeamId(e.target.value)}
+                    >
+                      <option value="">-- Select Team --</option>
+                      {teams.map(t => (
+                        <option key={t.Team_ID} value={t.Team_ID}>{t.Team_Name}</option>
+                      ))}
+                    </select>
+                    <div className="input-underline"></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Section */}
+              <div className="form-actions">
+                <button className="btn btn-primary login-submit-btn" type="submit">
+                  <span>Continue</span>
+                  <span className="btn-arrow">→</span>
+                </button>
+                <p className="form-hint">You can change roles later from the navbar.</p>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

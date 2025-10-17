@@ -3,6 +3,7 @@ import { fetchPlayers } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
 import PageTitle from '../components/ui/PageTitle';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const PlayersPage = () => {
   const [players, setPlayers] = useState([]);
@@ -64,8 +65,9 @@ const PlayersPage = () => {
   );
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container">
+    <div className="min-h-screen py-8 relative">
+      <BackgroundGlow />
+      <div className="container relative z-10">
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-3">Players Database</h1>
           <p className="text-gray-400">Browse all players, base prices, and auction status</p>

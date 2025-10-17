@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchVenues } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const VenuesPage = () => {
   const [venues, setVenues] = useState([]);
@@ -48,8 +49,9 @@ const VenuesPage = () => {
   );
 
   return (
-    <div className="page-container px-4 py-8">
-      <div className="container mx-auto max-w-6xl">
+    <div className="page-container px-4 py-8 relative">
+      <BackgroundGlow />
+      <div className="container mx-auto max-w-6xl relative z-10">
         <header className="mb-6 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">Auction Venues</h1>
           <p className="text-gray-400">List of venues, cities and capacities used in the auctions</p>

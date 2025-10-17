@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../state/AuthContext';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const AuctionPortalPage = () => {
     const { user } = useAuth();
@@ -70,7 +71,9 @@ const AuctionPortalPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 lg:p-8 font-sans flex flex-col">
+        <div className="min-h-screen bg-gray-900 text-white p-4 lg:p-8 font-sans flex flex-col relative">
+            <BackgroundGlow />
+            <div style={{position: 'relative', zIndex: 10}}>
             {soldAnnouncement && <SoldOverlay message={soldAnnouncement} />}
             <Header role={role} />
             <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
@@ -99,6 +102,7 @@ const AuctionPortalPage = () => {
                         />
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

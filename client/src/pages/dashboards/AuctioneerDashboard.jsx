@@ -1,10 +1,12 @@
 import React from 'react';
 import { ActionButton } from '../../components/ui/PrimaryButton';
+import BackgroundGlow from '../../components/ui/BackgroundGlow';
 
 const AuctioneerDashboard = () => {
   return (
-    <div className="min-h-screen py-8">
-      <div className="container">
+    <div className="min-h-screen py-8 relative">
+      <BackgroundGlow />
+      <div className="container relative z-10">
         <header className="mb-8">
           <h1 className="text-4xl font-bold mb-3">Auctioneer Console</h1>
           <p className="text-gray-400">Manage auctions, players, and teams</p>

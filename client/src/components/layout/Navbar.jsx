@@ -8,13 +8,13 @@ const Navbar = () => {
 
   return (
     <header className="app-navbar">
-      <div className="container py-4">
+      <div className="container py-4" style={{fontFamily: "'Roboto Mono', monospace",fontWeight:100}}>
         <div className="flex items-center justify-between">
           <Link to="/" className="brand">
             <div className="gradient-border">
               <span style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>🏏</span>
             </div>
-            <span className="gradient-text">IPL Auction</span>
+            <span className="gradient-text" style={{fontFamily: "'Xanh Mono', monospace"}}>IPL Auction</span>
           </Link>
 
           <button 

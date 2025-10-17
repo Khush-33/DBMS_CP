@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ActionButton, OutlineButton } from '../components/ui/PrimaryButton';
 import InfoCards from '../components/ui/InfoCards';
 import Icon from '../components/ui/Icon';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
+import iplActionImage from '../assets/auction.webp';
 import { fetchTeams, fetchPlayers, fetchAuctions, fetchBids } from '../services/api';
 
 // Small section wrapper to keep a consistent, minimal card look
@@ -79,13 +81,14 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <BackgroundGlow />
       {/* Hero Section */}
-      <section className="container py-16">
+      <section className="container py-16 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold mb-5 m-10" style={{fontFamily : "'Times New Roman', 'serif'", fontWeight: 400,
-  fontStyle: 'normal', fontSize: '100px'}}>IPL<br></br> Auction Plat<i>f</i>orm</h1>
-          <p className="text-m text-gray-300 mb-8" style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
+  fontStyle: 'normal', fontSize: '100px', color: '#b2c9feff'}}><b>IPL</b><br></br> Auction Plat<i>f</i>orm</h1>
+          <p className="text-m text-gray-300 mb-10" style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
             Professional auction management system for teams, players, and live bidding
           </p>
           <div className="flex justify-center gap-4 mt-10">
@@ -103,7 +106,15 @@ const HomePage = () => {
           { label: 'Auctions', value: stats.auctions, loading },
           { label: 'Bids', value: stats.bids, loading }
         ]} />
-
+        <br></br>
+        <div className="w-full mb-10 rounded-lg overflow-hidden shadow-lg">
+          <img 
+            src={iplActionImage} 
+            alt='IPL Action' 
+            className="w-full h-auto object-cover"
+            style={{ maxHeight: '500px' }}
+          />
+        </div>
         {/* Quick Access Cards */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 animate-fade-in-up mb-10">
           <Link to="/teams" className="card text-center group">

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { fetchSponsors } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
+import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const SponsorsPage = () => {
   const [sponsors, setSponsors] = useState([]);
@@ -52,8 +53,9 @@ const SponsorsPage = () => {
   );
 
   return (
-    <div className="page-container px-4 py-8">
-      <div className="container mx-auto max-w-6xl">
+    <div className="page-container px-4 py-8 relative">
+      <BackgroundGlow />
+      <div className="container mx-auto max-w-6xl relative z-10">
         <header className="mb-6 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">Team Sponsors</h1>
           <p className="text-gray-400">Sponsors, partnership deals and amounts</p>

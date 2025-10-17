@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BackgroundGlow from '../../components/ui/BackgroundGlow';
 
 const UserDashboard = () => {
   return (
-    <div className="min-h-screen py-8">
-      <div className="container">
+    <div className="min-h-screen py-8 relative">
+      <BackgroundGlow />
+      <div className="container relative z-10">
         <header className="mb-8">
           <h1 className="text-4xl font-bold mb-3">Fan Dashboard</h1>
           <p className="text-gray-400">Explore teams, players, and live auction updates</p>
