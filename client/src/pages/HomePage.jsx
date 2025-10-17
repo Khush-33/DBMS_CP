@@ -6,9 +6,9 @@ import Icon from '../components/ui/Icon';
 import { fetchTeams, fetchPlayers, fetchAuctions, fetchBids } from '../services/api';
 
 // Small section wrapper to keep a consistent, minimal card look
-const SectionBox = ({ children, className = '' }) => (
-  <div className={`stat-card glass ${className}`}>{children}</div>
-);
+// const SectionBox = ({ children, className = '' }) => (
+//   <div className={`stat-card glass ${className}`}>{children}</div>
+// );
 
 // Clean, minimal Sports Card used for navigation
 const SportsCard = ({ title, subtitle, image, stats, link, category }) => (
@@ -62,10 +62,10 @@ const HomePage = () => {
       .then(([teamsRes, playersRes, auctionsRes, bidsRes]) => {
         if (!mounted) return;
         setStats({
-          teams: Array.isArray(teamsRes.data) ? teamsRes.data.length : (teamsRes.data.count || null),
-          players: Array.isArray(playersRes.data) ? playersRes.data.length : (playersRes.data.count || null),
-          auctions: Array.isArray(auctionsRes.data) ? auctionsRes.data.length : (auctionsRes.data.count || null),
-          bids: Array.isArray(bidsRes.data) ? bidsRes.data.length : (bidsRes.data.count || null),
+          teams: teamsRes.data.length ,
+          players: playersRes.data.length,
+          auctions: auctionsRes.data.length,
+          bids: bidsRes.data.length ,
         });
       })
       .catch((err) => {
@@ -104,7 +104,7 @@ const HomePage = () => {
         ]} />
 
         {/* Quick Access Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in-up">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 animate-fade-in-up mb-10">
           <Link to="/teams" className="card text-center group">
             <div className="text-4xl mb-3">🏆</div>
             <h3 className="text-lg font-semibold mb-2">Teams</h3>
@@ -131,7 +131,7 @@ const HomePage = () => {
         </section>
 
         {/* Featured Section */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="mt-100 mb-5">
           <div className="lg:col-span-2">
             <div className="card mb-6">
               <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>

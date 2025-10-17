@@ -13,15 +13,21 @@ const CustomTable = ({ columns, data }) => {
     <div className="overflow-x-auto rounded-lg animate-fade-in-up">
       <table>
         <thead>
+          
           <tr>
+            <th></th>
+            <th>Sr No.</th>
             {columns.map((col) => (
               <th key={col.accessor}>{col.Header}</th>
             ))}
           </tr>
         </thead>
         <tbody>
+            
           {data.map((row, rowIndex) => (
+            
             <tr key={rowIndex}>
+                <td>{rowIndex + 1}</td>
               {columns.map((col, colIndex) => (
                 <td key={`${rowIndex}-${colIndex}`}>
                   {row[col.accessor]}

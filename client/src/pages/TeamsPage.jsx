@@ -39,7 +39,8 @@ const TeamsPage = () => {
   ], []);
 
   const formattedTeams = teams.map(team => ({
-    ...team,
+    Team_Name: team.Team_Name,
+    Owner_Name: team.Owner_Name,
     Budget_Remaining: (team.Budget_Remaining / 10000000).toFixed(2) + ' Cr'
   }));
 
