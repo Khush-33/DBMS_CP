@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchTeams } from '../services/api';
+import { fetchTeams, fetchTeamSummary } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
 import PageTitle from '../components/ui/PageTitle';
@@ -10,6 +10,8 @@ const TeamsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [parallaxY, setParallaxY] = useState(0)
+  const [summary, setSummary] = useState({ totalTeams: 0, avgBudgetCr: 0, totalBudgetCr: 0 });
+  const [summaryLoading, setSummaryLoading] = useState(true);
 
   useEffect(() => {
     const onScroll = () => setParallaxY(window.scrollY * 0.08)
@@ -31,6 +33,25 @@ const TeamsPage = () => {
       }
     };
     getTeams();
+  }, []);
+
+  useEffect(() => {
+    const getSummary = async () => {
+      try {
+        const { data } = await fetchTeamSummary();
+        setSummary({
+          totalTeams: data?.totalTeams ?? 0,
+          avgBudgetCr: data?.avgBudgetCr ?? 0,
+          totalBudgetCr: data?.totalBudgetCr ?? 0
+        });
+      } catch (err) {
+        console.error('Failed to fetch team summary:', err);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    getSummary();
   }, []);
 
   const columns = useMemo(() => [
@@ -71,14 +92,14 @@ const TeamsPage = () => {
       <div className="container relative z-10">
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-3">IPL Teams</h1>
-          <p className="text-gray-400">Franchise teams, ownership, and budget management</p>
+          <p className="text-gray-400"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>Franchise teams, ownership, and budget management</p>
         </header>
 
         <div className="mb-8">
           <InfoCards items={[
-            { label: 'Total Teams', value: formattedTeams.length },
-            { label: 'Average Budget', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)/Math.max(formattedTeams.length,1)).toFixed(2) + ' Cr' },
-            { label: 'Total Budget', value: (formattedTeams.reduce((s,t)=> s + parseFloat(t.Budget_Remaining),0)).toFixed(2) + ' Cr' }
+            { label: 'Total Teams', value: summary.totalTeams, loading: loading || summaryLoading },
+            { label: 'Average Budget', value: summary.avgBudgetCr, precision: 2, sub: 'in Cr', loading: loading || summaryLoading },
+            { label: 'Total Budget', value: summary.totalBudgetCr, precision: 2, sub: 'in Cr', loading: loading || summaryLoading }
           ]} />
         </div>
 

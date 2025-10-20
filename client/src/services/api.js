@@ -5,6 +5,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 // Teams
 export const fetchTeams = () => axios.get(`${API_BASE_URL}/teams`);
 export const fetchTeamDetails = (teamId) => axios.get(`${API_BASE_URL}/teams/${teamId}`);
+export const fetchTeamSummary = () => axios.get(`${API_BASE_URL}/teams/summary`);
 
 // Players
 export const fetchPlayers = () => axios.get(`${API_BASE_URL}/players`);

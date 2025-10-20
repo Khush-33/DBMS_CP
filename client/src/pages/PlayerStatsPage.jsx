@@ -76,7 +76,7 @@ const PlayerStatsPage = () => {
           <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 tracking-tight">
             Player Statistics
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
             Dive deep into player performance metrics and season-by-season analytics
           </p>
         </div>

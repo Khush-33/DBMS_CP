@@ -72,7 +72,7 @@ const AuctionsPage = () => {
           <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 tracking-tight">
             IPL Auctions
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
             Explore the history of IPL auction events, venues, and seasons
           </p>
         </div>

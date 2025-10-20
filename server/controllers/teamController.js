@@ -12,6 +12,29 @@ exports.getAllTeams = async (req, res) => {
   }
 };
 
+exports.getTeamSummary = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT
+                COUNT(*) AS totalTeams,
+                COALESCE(SUM(Budget_Remaining), 0) AS totalBudget,
+                COALESCE(AVG(Budget_Remaining), 0) AS avgBudget
+            FROM Teams
+        `);
+
+        const summary = rows[0] || { totalTeams: 0, totalBudget: 0, avgBudget: 0 };
+
+        res.status(200).json({
+            totalTeams: Number(summary.totalTeams) || 0,
+            totalBudgetCr: Number(summary.totalBudget) / 10000000,
+            avgBudgetCr: Number(summary.avgBudget) / 10000000
+        });
+    } catch (error) {
+        console.error('Error fetching team summary:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // @desc    Fetch a single team with its players and sponsors
 // @route   GET /api/teams/:id
 exports.getTeamDetails = async (req, res) => {

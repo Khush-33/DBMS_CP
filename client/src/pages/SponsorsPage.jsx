@@ -58,7 +58,7 @@ const SponsorsPage = () => {
       <div className="container mx-auto max-w-6xl relative z-10">
         <header className="mb-6 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">Team Sponsors</h1>
-          <p className="text-gray-400">Sponsors, partnership deals and amounts</p>
+          <p className="text-gray-400"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>Sponsors, partnership deals and amounts</p>
         </header>
 
         <div className="mb-6">

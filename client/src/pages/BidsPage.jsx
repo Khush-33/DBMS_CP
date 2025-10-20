@@ -107,7 +107,7 @@ const BidsPage = () => {
           <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400 tracking-tight">
             Auction Bid History
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>
             Track real-time bidding wars and record-breaking player purchases
           </p>
         </div>

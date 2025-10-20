@@ -70,7 +70,7 @@ const PlayersPage = () => {
       <div className="container relative z-10">
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-3">Players Database</h1>
-          <p className="text-gray-400">Browse all players, base prices, and auction status</p>
+          <p className="text-gray-400"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>Browse all players, base prices, and auction status</p>
         </header>
 
         <div className="mb-8">

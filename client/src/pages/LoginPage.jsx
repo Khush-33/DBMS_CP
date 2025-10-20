@@ -64,7 +64,7 @@ const LoginPage = () => {
             {/* Header Section */}
             <div className="login-header">
               <h1 className="text-5xl font-extrabold gradient-text" style={{marginBottom: 12}}>Welcome back</h1>
-              <p className="text-gray-400 text-lg">Sign in to access role-based dashboards and live auctions.</p>
+              <p className="text-gray-400 text-lg"  style={{fontFamily:" 'DM Mono', monospace",fontWeight: 300,fontStyle: 'normal'}}>Sign in to access role-based dashboards and live auctions.</p>
             </div>
 
             <form onSubmit={onSubmit} style={{display:'grid', gap: 32}}>
