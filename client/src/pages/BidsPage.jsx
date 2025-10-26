@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchBids } from '../services/api';
+import { fetchBids, fetchTeams, postBid, fetchPlayers } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
 
@@ -10,6 +10,11 @@ const BidsPage = () => {
   const [error, setError] = useState(null);
   const [teamFilter, setTeamFilter] = useState('All Teams');
   const [searchTerm, setSearchTerm] = useState('');
+  const [teamsList, setTeamsList] = useState([]);
+  const [playersList, setPlayersList] = useState([]);
+  const [manualBid, setManualBid] = useState({ Player_ID: '', Team_ID: '', Bid_Amount: '' });
+  const [postingBid, setPostingBid] = useState(false);
+  const [bidError, setBidError] = useState(null);
 
   useEffect(() => {
     const getBids = async () => {
@@ -24,6 +29,17 @@ const BidsPage = () => {
       }
     };
     getBids();
+    // fetch teams and players for manual bid UI
+    const fetchLookups = async () => {
+      try {
+        const [tRes, pRes] = await Promise.all([fetchTeams(), fetchPlayers()]);
+        setTeamsList(tRes.data);
+        setPlayersList(pRes.data);
+      } catch (e) {
+        console.error('Lookup load failed', e);
+      }
+    };
+    fetchLookups();
   }, []);
 
   const columns = useMemo(() => [
@@ -60,6 +76,23 @@ const BidsPage = () => {
     setTeamFilter('All Teams');
     setSearchTerm('');
     setFilteredBids(bids.slice());
+  };
+
+  const handleManualChange = (field) => (e) => setManualBid(prev => ({ ...prev, [field]: e.target.value }));
+
+  const submitManualBid = async (e) => {
+    e.preventDefault();
+    setBidError(null);
+    if (!manualBid.Player_ID || !manualBid.Team_ID || !manualBid.Bid_Amount) { setBidError('Please select player, team and amount'); return; }
+    setPostingBid(true);
+    try {
+      await postBid({ Auction_ID: 1, Player_ID: Number(manualBid.Player_ID), Team_ID: Number(manualBid.Team_ID), Bid_Amount: Number(manualBid.Bid_Amount) });
+      const resp = await fetchBids();
+      setBids(resp.data); setFilteredBids(resp.data);
+      setManualBid({ Player_ID: '', Team_ID: '', Bid_Amount: '' });
+    } catch (err) {
+      setBidError(err.response?.data?.message || err.message || 'Failed to post bid');
+    } finally { setPostingBid(false); }
   };
 
   // Stats derived from filtered data for sidebar
@@ -147,6 +180,26 @@ const BidsPage = () => {
               <span className="text-green-400 font-semibold">Live Updates</span>
             </div>
           </div>
+        </div>
+
+        {/* Manual bid form (for admin/testing) */}
+        <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
+          <h3 className="text-lg font-bold mb-3">Place Manual Bid (admin)</h3>
+          <form onSubmit={submitManualBid} className="grid md:grid-cols-4 gap-4">
+            <select value={manualBid.Player_ID} onChange={handleManualChange('Player_ID')} className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white">
+              <option value="">Select player</option>
+              {playersList.map(p => <option key={p.Player_ID} value={p.Player_ID}>{p.Name}</option>)}
+            </select>
+            <select value={manualBid.Team_ID} onChange={handleManualChange('Team_ID')} className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white">
+              <option value="">Select team</option>
+              {teamsList.map(t => <option key={t.Team_ID} value={t.Team_ID}>{t.Team_Name}</option>)}
+            </select>
+            <input value={manualBid.Bid_Amount} onChange={handleManualChange('Bid_Amount')} placeholder="Amount" type="number" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={postingBid} className={`btn-accent ${postingBid ? 'opacity-60' : ''}`}>Post Bid</button>
+              {bidError && <div className="text-red-400">{bidError}</div>}
+            </div>
+          </form>
         </div>
 
         {/* Table Section */}
