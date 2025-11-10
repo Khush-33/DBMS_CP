@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchPlayers, addPlayer, fetchTeams, postTeamPlayer } from '../services/api';
+import { fetchPlayers, addPlayer, fetchTeams, postTeamPlayer, searchPlayers } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
 import PageTitle from '../components/ui/PageTitle';
@@ -8,6 +8,8 @@ const PlayersPage = () => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   // subtle parallax value for hero accent (must be before conditional returns)
   const [parallaxY, setParallaxY] = useState(0)
 
@@ -165,6 +167,32 @@ const PlayersPage = () => {
         </div>
 
         <div className="mb-6 flex items-center justify-end gap-3">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={async (e) => {
+                const query = e.target.value;
+                setSearchQuery(query);
+                setSearching(true);
+                try {
+                  if (query.trim()) {
+                    const response = await searchPlayers(query);
+                    setPlayers(response.data);
+                  } else {
+                    const response = await fetchPlayers();
+                    setPlayers(response.data);
+                  }
+                } catch (err) {
+                  setError('Search failed');
+                } finally {
+                  setSearching(false);
+                }
+              }}
+              placeholder="Search by name, role, or country..."
+              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white"
+            />
+          </div>
           <button onClick={() => setShowAddForm(s => !s)} className="btn-accent">{showAddForm ? 'Close' : 'Add Player'}</button>
         </div>
 

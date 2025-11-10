@@ -34,11 +34,13 @@ exports.addBid = async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        // Insert into Bids; the BEFORE INSERT trigger should validate budget/base price
+        // Insert into Bids; your AFTER INSERT trigger will finalize the sale and budgets
         await db.query('INSERT INTO Bids (Auction_ID, Player_ID, Team_ID, Bid_Amount) VALUES (?, ?, ?, ?)', [Auction_ID, Player_ID, Team_ID, Bid_Amount]);
 
         const [rows] = await db.query('SELECT b.*, t.Team_Name, p.Name as Player_Name FROM Bids b JOIN Teams t ON b.Team_ID = t.Team_ID JOIN Players p ON b.Player_ID = p.Player_ID WHERE b.Player_ID = ? ORDER BY b.Bid_Time DESC LIMIT 1', [Player_ID]);
-        res.status(201).json(rows[0] || { message: 'Bid recorded' });
+        // Also fetch the resulting Team_Players row to confirm persistence
+        const [tpRows] = await db.query('SELECT * FROM Team_Players WHERE Player_ID = ? AND Auction_ID = ? LIMIT 1', [Player_ID, Auction_ID]);
+        res.status(201).json({ bid: rows[0] || null, teamPlayer: tpRows[0] || null, message: 'Bid recorded' });
     } catch (error) {
         console.error('Error adding bid:', error);
         // If db.signaled an error from trigger, surface it

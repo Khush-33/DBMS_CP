@@ -33,9 +33,15 @@ const Navbar = () => {
             <NavLink to="/player-stats" className="nav-link">Stats</NavLink>
             <NavLink to="/sponsors" className="nav-link">Sponsors</NavLink>
             <NavLink to="/team-players" className="nav-link">Squads</NavLink>
+            <NavLink to="/reports" className="nav-link">Reports</NavLink>
             <NavLink to="/live-auction" className="nav-link">
               <span style={{ color: '#ef4444' }}>●</span> Live
             </NavLink>
+            {user?.role === 'owner' || user?.role === 'manager' ? (
+              <NavLink to="/query-analysis" className="nav-link">
+                <span style={{ color: '#10b981' }}>📊</span> Query Analysis
+              </NavLink>
+            ) : null}
           </nav>
 
           <div className="nav-cta">

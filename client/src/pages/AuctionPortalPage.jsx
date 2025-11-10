@@ -37,6 +37,11 @@ const AuctionPortalPage = () => {
                     setSoldAnnouncement(data.message);
                     setTimeout(() => setSoldAnnouncement(''), 4000);
                     break;
+                case 'AUCTION_RESET':
+                    // Clear local histories; server will rehydrate state via AUCTION_STATE
+                    setBidHistory([]);
+                    setSoldAnnouncement('');
+                    break;
                 default:
                     break;
             }
@@ -53,15 +58,24 @@ const AuctionPortalPage = () => {
         }
     };
 
-    const handleSetRole = (selectedRole) => {
-        setRole(selectedRole);
-        sendMessage({ type: 'REGISTER_ROLE', role: selectedRole });
+    const handleSetRole = (selection) => {
+        const { label, teamId } = typeof selection === 'string' ? { label: selection, teamId: null } : selection;
+        setRole(label);
+        sendMessage({ type: 'REGISTER_ROLE', role: label, userId: user?.userId, teamId });
     };
 
     const placeBid = (amount) => {
         const myTeam = teams.find(t => t.name === role);
         if (myTeam && myTeam.budget >= amount) {
             sendMessage({ type: 'PLACE_BID', team: role, amount: parseInt(amount, 10) });
+        }
+    };
+
+    const resetAuction = async () => {
+        try {
+            await fetch('http://localhost:5000/api/admin/reset-auction', { method: 'POST' });
+        } catch (e) {
+            console.error('Failed to reset auction:', e);
         }
     };
 
@@ -96,6 +110,7 @@ const AuctionPortalPage = () => {
                             auctionState={auctionState}
                             onStart={() => sendMessage({ type: 'START_AUCTION' })}
                             onNext={() => sendMessage({ type: 'NEXT_PLAYER' })}
+                            onReset={resetAuction}
                         />
                     )}
                 </div>
@@ -104,11 +119,13 @@ const AuctionPortalPage = () => {
     );
 };
 
-// --- Helper Function ---
-const getIncrementStep = (currentBid) => {
-    if (currentBid < 10000000) return 200000; // ₹0–₹1Cr → +₹2L
-    if (currentBid < 50000000) return 500000; // ₹1Cr–₹5Cr → +₹5L
-    return 1000000; // ₹5Cr+ → +₹10L
+// --- Helper Functions (Cr format and 0.5 Cr increments) ---
+const STEP = 5000000; // 0.5 Cr in INR
+const roundUpToStep = (amount) => Math.ceil(amount / STEP) * STEP;
+const formatCr = (amount) => {
+    const cr = amount / 10000000; // 1 Cr = 1e7
+    const str = Number.isInteger(cr) ? cr.toFixed(0) : cr.toFixed(1);
+    return `${str} Cr`;
 };
 
 // --- Sub-components ---
@@ -122,7 +139,7 @@ const RoleSelectionScreen = ({ teams, onSelectRole, canSelectAuctioneer }) => (
                 {canSelectAuctioneer && (
                     <div className="col-span-full">
                         <button
-                            onClick={() => onSelectRole('Auctioneer')}
+                            onClick={() => onSelectRole({ label: 'Auctioneer', teamId: null })}
                             className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-lg transition-transform transform hover:scale-105"
                         >
                             AUCTIONEER
@@ -132,7 +149,7 @@ const RoleSelectionScreen = ({ teams, onSelectRole, canSelectAuctioneer }) => (
                 {teams.map(team => (
                     <button
                         key={team.id}
-                        onClick={() => onSelectRole(team.name)}
+                        onClick={() => onSelectRole({ label: team.name, teamId: team.id })}
                         className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-transform transform hover:scale-105"
                     >
                         {team.name}
@@ -187,14 +204,14 @@ const CurrentPlayerStage = ({ auctionState }) => {
                     <p className="font-semibold text-gray-400">{currentPlayer.role} - {currentPlayer.country}</p>
                     <h2 className="text-5xl font-extrabold text-white">{currentPlayer.name}</h2>
                     <p className="mt-2 text-lg text-gray-400">
-                        Base Price: <span className="font-bold text-white">₹{Number(currentPlayer.basePrice).toLocaleString('en-IN')}</span>
+                        Base Price: <span className="font-bold text-white">{formatCr(currentPlayer.basePrice)}</span>
                     </p>
                 </div>
                 <div className={`text-6xl font-black ${timerColor} transition-colors`}>{timer}</div>
             </div>
             <div className="text-center">
                 <p className="text-lg text-gray-400">Current Bid</p>
-                <p className="text-7xl font-extrabold text-orange-400">₹{Number(currentBid).toLocaleString('en-IN')}</p>
+                <p className="text-7xl font-extrabold text-orange-400">{currentBid ? formatCr(currentBid) : formatCr(currentPlayer.basePrice)}</p>
                 <p className="mt-2 text-lg text-gray-400">
                     Highest Bidder: <span className="font-bold text-white">{highestBidder || 'None'}</span>
                 </p>
@@ -212,7 +229,8 @@ const TeamPaddles = ({ teams, auctionState, role, placeBid, connectedTeams }) =>
 
             const currentBid = parseInt(auctionState?.currentBid || 0, 10);
             const basePrice = parseInt(auctionState?.currentPlayer?.basePrice || 200000, 10);
-            const nextBidAmount = currentBid > 0 ? currentBid + getIncrementStep(currentBid) : basePrice;
+            const startingBid = roundUpToStep(basePrice);
+            const nextBidAmount = currentBid > 0 ? currentBid + STEP : startingBid;
 
             const canAfford = team.budget >= nextBidAmount;
 
@@ -228,14 +246,14 @@ const TeamPaddles = ({ teams, auctionState, role, placeBid, connectedTeams }) =>
                     <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-600'}`}></div>
                     <div>
                         <p className="font-bold text-sm truncate">{team.name}</p>
-                        <p className="text-xs text-gray-400">₹{Number(team.budget).toLocaleString('en-IN')}</p>
+                        <p className="text-xs text-gray-400">{formatCr(team.budget)}</p>
                     </div>
                     {isMyTeam && auctionState?.status === 'active' && canAfford && (
                         <button
                             onClick={() => placeBid(nextBidAmount)}
                             className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 text-xs rounded-md transition-transform transform hover:scale-105"
                         >
-                            BID ₹{Number(nextBidAmount).toLocaleString('en-IN')}
+                            BID {formatCr(nextBidAmount)}
                         </button>
                     )}
                 </div>
@@ -251,7 +269,7 @@ const BidHistory = ({ bids }) => (
             {bids.length === 0 && <p className="text-gray-500">No bids yet for this player.</p>}
             {bids.map((bid, i) => (
                 <p key={i}>
-                    <span className="font-semibold text-orange-400">{bid.team}</span> bids ₹{Number(bid.amount).toLocaleString('en-IN')}
+                    <span className="font-semibold text-orange-400">{bid.team}</span> bids {formatCr(parseInt((bid.amount + '').replace(/[^0-9]/g, '') || bid.amount, 10))}
                 </p>
             ))}
         </div>
@@ -275,7 +293,7 @@ const SoldPlayers = ({ history }) => (
     </div>
 );
 
-const AuctioneerControls = ({ auctionState, onStart, onNext }) => (
+const AuctioneerControls = ({ auctionState, onStart, onNext, onReset }) => (
     <div className="bg-black bg-opacity-20 rounded-xl p-4 border border-gray-700">
         <h3 className="font-bold text-lg mb-3">Auctioneer Controls</h3>
         {auctionState?.status === 'pending' && (
@@ -288,6 +306,16 @@ const AuctioneerControls = ({ auctionState, onStart, onNext }) => (
                 NEXT PLAYER
             </button>
         )}
+        <button
+            onClick={() => {
+                if (window.confirm('Reset the entire auction? This will clear bids, squads, mark all players Available, and set all budgets to 100 Cr.')) {
+                    onReset();
+                }
+            }}
+            className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg"
+        >
+            RESET AUCTION
+        </button>
     </div>
 );
 

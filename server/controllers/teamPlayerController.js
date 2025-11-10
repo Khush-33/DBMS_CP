@@ -38,13 +38,43 @@ exports.addTeamPlayer = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    await db.query('INSERT INTO Team_Players (Team_ID, Player_ID, Auction_ID, Price) VALUES (?, ?, ?, ?)', [Team_ID, Player_ID, Auction_ID, Price]);
+    // Check if player is already in a team for this auction
+    const [existingPlayer] = await db.query(
+      'SELECT * FROM Team_Players WHERE Player_ID = ? AND Auction_ID = ?',
+      [Player_ID, Auction_ID]
+    );
 
-    // Return the inserted row (best-effort)
-    const [rows] = await db.query('SELECT tp.*, p.Name as Player_Name, t.Team_Name as Team_Name FROM Team_Players tp JOIN Players p ON tp.Player_ID = p.Player_ID JOIN Teams t ON tp.Team_ID = t.Team_ID WHERE tp.Player_ID = ? ORDER BY tp.Team_Player_ID DESC LIMIT 1', [Player_ID]);
+    if (existingPlayer.length > 0) {
+      return res.status(400).json({ 
+        message: 'Player is already assigned to a team in this auction' 
+      });
+    }
+
+    await db.query(
+      'INSERT INTO Team_Players (Team_ID, Player_ID, Auction_ID, Price) VALUES (?, ?, ?, ?)',
+      [Team_ID, Player_ID, Auction_ID, Price]
+    );
+
+    // Return the inserted row
+    const [rows] = await db.query(
+      `SELECT 
+        tp.*,
+        p.Name as Player_Name,
+        t.Team_Name as Team_Name 
+      FROM Team_Players tp 
+      JOIN Players p ON tp.Player_ID = p.Player_ID 
+      JOIN Teams t ON tp.Team_ID = t.Team_ID 
+      WHERE tp.Player_ID = ? AND tp.Team_ID = ? AND tp.Auction_ID = ?`,
+      [Player_ID, Team_ID, Auction_ID]
+    );
+
     res.status(201).json(rows[0] || { message: 'Player assigned to team' });
   } catch (error) {
     console.error('Error adding team player:', error);
-    res.status(500).json({ message: 'Server Error' });
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ message: 'Player is already assigned to a team' });
+    } else {
+      res.status(500).json({ message: 'Server Error' });
+    }
   }
 };

@@ -1,5 +1,30 @@
 const db = require('../config/db');
 
+// @desc    Search players by name, role, or country
+// @route   GET /api/players/search
+exports.searchPlayers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    const searchQuery = `%${query}%`;
+    const [rows] = await db.query(
+      `SELECT Player_ID, Name, Role, Base_Price, Country, Status 
+       FROM Players 
+       WHERE Name LIKE ? OR Role LIKE ? OR Country LIKE ?
+       ORDER BY Name`,
+      [searchQuery, searchQuery, searchQuery]
+    );
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error searching players:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // @desc    Fetch all players
 // @route   GET /api/players
 exports.getAllPlayers = async (req, res) => {
