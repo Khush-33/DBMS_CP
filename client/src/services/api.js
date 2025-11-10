@@ -10,6 +10,7 @@ export const fetchTeamDetails = (teamId) => axios.get(`${API_BASE_URL}/teams/${t
 export const fetchPlayers = () => axios.get(`${API_BASE_URL}/players`);
 export const fetchPlayerById = (playerId) => axios.get(`${API_BASE_URL}/players/${playerId}`);
 export const addPlayer = (payload) => axios.post(`${API_BASE_URL}/players`, payload);
+export const searchPlayers = (query) => axios.get(`${API_BASE_URL}/players/search?query=${encodeURIComponent(query)}`);
 
 // Auctions
 export const fetchAuctions = () => axios.get(`${API_BASE_URL}/auctions`);

@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const db = require('./config/db'); // Import the database connection
+const createIndexes = require('./config/indexes'); // Import the index creation function
 
 // Load env vars
 dotenv.config();
@@ -109,6 +110,8 @@ const sponsorRoutes = require('./routes/sponsors');
 const venueRoutes = require('./routes/venues');
 const playerStatRoutes = require('./routes/playerStats');
 const teamPlayerRoutes = require('./routes/teamPlayers');
+const analyzeRoutes = require('./routes/analyze');
+const queryAnalysisRoutes = require('./routes/queryAnalysis');
 
 app.use('/api/teams', teamRoutes);
 app.use('/api/players', playerRoutes);
@@ -118,6 +121,8 @@ app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/venues', venueRoutes);
 app.use('/api/stats', playerStatRoutes);
 app.use('/api/squads', teamPlayerRoutes);
+app.use('/api/analyze', analyzeRoutes);
+app.use('/api/query-analysis', queryAnalysisRoutes);
 
 const server = http.createServer(app);
 
@@ -161,12 +166,23 @@ const sellPlayer = async () => {
     if (auctionState.highestBidderId) {
         soldMessage = `${auctionState.currentPlayer.name} SOLD to ${auctionState.highestBidder} for ₹${auctionState.currentBid.toLocaleString()}`;
         try {
-            await db.query('INSERT INTO Team_Players (Team_ID, Player_ID, Auction_ID, Price) VALUES (?, ?, ?, ?)', [auctionState.highestBidderId, auctionState.currentPlayer.id, 1, auctionState.currentBid]);
+            // Use atomic upsert to avoid duplicate-key errors regardless of unique/index setup
+            const AUCTION_ID = 1;
+            const upsertSql = `
+                INSERT INTO Team_Players (Team_ID, Player_ID, Auction_ID, Price)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    Team_ID = VALUES(Team_ID),
+                    Price = VALUES(Price)
+            `;
+            await db.query(upsertSql, [auctionState.highestBidderId, auctionState.currentPlayer.id, AUCTION_ID, auctionState.currentBid]);
+            console.log(`Upserted Team_Players entry for Player_ID=${auctionState.currentPlayer.id}`);
+
             await db.query("UPDATE Players SET Status = 'Sold' WHERE Player_ID = ?", [auctionState.currentPlayer.id]);
-            
+
             const winningTeam = teamsData.find(t => t.id === auctionState.highestBidderId);
             if (winningTeam) winningTeam.budget -= auctionState.currentBid;
-            
+
             auctionState.soldHistory.push({
                 player: auctionState.currentPlayer,
                 team: auctionState.highestBidder,
@@ -272,8 +288,9 @@ wss.on('connection', ws => {
 // --- START THE SERVER ---
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
-    // Ensure views exist, then initialize data
+    // Ensure views and indexes exist, then initialize data
     await createViews();
+    await createIndexes();
     await initializeAuctionData();
     console.log(`Server running on port ${PORT}`);
     console.log(`WebSocket server started on port ${PORT}`);
