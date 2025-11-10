@@ -20,7 +20,7 @@ exports.getTeamSummary = async (req, res) => {
                 COALESCE(SUM(Budget_Remaining), 0) AS totalBudget,
                 COALESCE(AVG(Budget_Remaining), 0) AS avgBudget
             FROM Teams
-        `);
+        `); //COALESCE return the first non null value from its parameters
 
         const summary = rows[0] || { totalTeams: 0, totalBudget: 0, avgBudget: 0 };
 
