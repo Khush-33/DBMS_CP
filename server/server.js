@@ -46,6 +46,55 @@ const initializeAuctionData = async () => {
     }
 };
 
+// Create or replace useful views for reporting
+const createViews = async () => {
+    try {
+        // View 1: SoldPlayerDetails
+        await db.query(`CREATE OR REPLACE VIEW SoldPlayerDetails AS
+            SELECT 
+                p.Name AS Player_Name,
+                p.Role,
+                p.Country,
+                t.Team_Name AS Bought_By_Team,
+                tp.Price AS Purchase_Price,
+                a.Season
+            FROM Team_Players tp
+            JOIN Players p ON tp.Player_ID = p.Player_ID
+            JOIN Teams t ON tp.Team_ID = t.Team_ID
+            JOIN Auctions a ON tp.Auction_ID = a.Auction_ID`);
+
+        // View 2: TeamBudgetSummary
+        await db.query(`CREATE OR REPLACE VIEW TeamBudgetSummary AS
+            SELECT
+                t.Team_Name,
+                (t.Budget_Remaining + IFNULL(SUM(tp.Price), 0)) AS Initial_Budget,
+                IFNULL(SUM(tp.Price), 0) AS Amount_Spent,
+                t.Budget_Remaining
+            FROM Teams t
+            LEFT JOIN Team_Players tp ON t.Team_ID = tp.Team_ID
+            GROUP BY t.Team_ID, t.Team_Name`);
+
+        // View 3: PlayerPerformanceSummary
+        await db.query(`CREATE OR REPLACE VIEW PlayerPerformanceSummary AS
+            SELECT
+                p.Name AS Player_Name,
+                p.Role,
+                p.Country,
+                ps.Season,
+                ps.Matches_Played,
+                ps.Runs,
+                ps.Wickets,
+                ps.Strike_Rate,
+                ps.Economy
+            FROM Players p
+            JOIN Player_Stats ps ON p.Player_ID = ps.Player_ID`);
+
+        console.log('Database views ensured: SoldPlayerDetails, TeamBudgetSummary, PlayerPerformanceSummary');
+    } catch (error) {
+        console.error('Error creating database views:', error);
+    }
+};
+
 // --- EXPRESS API SERVER ---
 const app = express();
 app.use(cors());
@@ -223,6 +272,8 @@ wss.on('connection', ws => {
 // --- START THE SERVER ---
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
+    // Ensure views exist, then initialize data
+    await createViews();
     await initializeAuctionData();
     console.log(`Server running on port ${PORT}`);
     console.log(`WebSocket server started on port ${PORT}`);
