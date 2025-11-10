@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchAuctions } from '../services/api';
+import { fetchAuctions, adminAddAuction } from '../services/api';
+
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
 
@@ -7,6 +8,11 @@ const AuctionsPage = () => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddAuction, setShowAddAuction] = useState(false);
+  const [auctionDate, setAuctionDate] = useState('');
+  const [season, setSeason] = useState('');
+  const [venueId, setVenueId] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const getAuctions = async () => {
@@ -76,6 +82,9 @@ const AuctionsPage = () => {
           <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Explore the history of IPL auction events, venues, and seasons
           </p>
+          <div className="mt-4">
+            <button className="btn-primary" onClick={() => setShowAddAuction(true)}>Add Auction</button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -94,6 +103,45 @@ const AuctionsPage = () => {
           <CustomTable columns={columns} data={formattedAuctions} />
         </section>
       </div>
+
+      {/* Add Auction Modal */}
+      {showAddAuction && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Add Auction</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Auction Date</label>
+                <input type="date" className="w-full input" value={auctionDate} onChange={e=>setAuctionDate(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Season (Year)</label>
+                <input type="number" className="w-full input" value={season} onChange={e=>setSeason(e.target.value)} placeholder="e.g., 2026" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Venue ID</label>
+                <input type="number" className="w-full input" value={venueId} onChange={e=>setVenueId(e.target.value)} placeholder="e.g., 1" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button className="btn-outline" onClick={()=>setShowAddAuction(false)} disabled={saving}>Cancel</button>
+                <button className="btn-primary" disabled={saving || !auctionDate || !season || !venueId}
+                  onClick={async ()=>{
+                    setSaving(true);
+                    try {
+                      await adminAddAuction(auctionDate, Number(season), Number(venueId));
+                      const res = await fetchAuctions();
+                      setAuctions(res.data);
+                      setShowAddAuction(false);
+                      setAuctionDate(''); setSeason(''); setVenueId('');
+                    } catch(e) { alert('Failed to add auction'); }
+                    finally { setSaving(false); }
+                  }}
+                >{saving ? 'Saving…' : 'Create'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

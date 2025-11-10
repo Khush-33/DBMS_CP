@@ -19,9 +19,12 @@ export const AuthProvider = ({ children }) => {
     } catch {}
   }, [user]);
 
-  const login = (username, role, team) => {
-    const fakeToken = 'demo-token';
-    setUser({ username, role, team, token: fakeToken });
+  const login = (username, role, team, token, userId) => {
+    // Store token in localStorage for API requests
+    if (token) {
+      localStorage.setItem('auth:token', token);
+    }
+    setUser({ userId, username, role, team, token });
   };
 
   const logout = () => setUser(null);

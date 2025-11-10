@@ -20,7 +20,7 @@ import TeamPlayersPage from './pages/TeamPlayersPage';
 import AuctionPortalPage from './pages/AuctionPortalPage';
 import QueryAnalyzerPage from './pages/QueryAnalyzerPage';
 import QueryAnalysisPage from './pages/QueryAnalysisPage';
-
+import ReportsPage from './pages/ReportsPage';
 
 function App() {
   return (
@@ -43,6 +43,7 @@ function App() {
           <Route path="/live-auction" element={<AuctionPortalPage />} />
           <Route path="/analyze" element={<QueryAnalyzerPage />} />
           <Route path="/query-analysis" element={<ProtectedRoute roles={["owner","manager"]}><QueryAnalysisPage /></ProtectedRoute>} />
+          <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </Layout>
     </Router>
