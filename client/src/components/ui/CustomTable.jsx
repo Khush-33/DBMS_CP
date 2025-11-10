@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CustomTable = ({ columns, data }) => {
+const CustomTable = ({ columns, data, onRowClick, getRowId, selectedRowId }) => {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-12">
@@ -25,15 +25,30 @@ const CustomTable = ({ columns, data }) => {
         <tbody>
             
           {data.map((row, rowIndex) => (
-            
-            <tr key={rowIndex}>
-                <td>{rowIndex + 1}</td>
+            (() => {
+              const derivedRowId = getRowId ? getRowId(row, rowIndex) : rowIndex;
+              const rowId = derivedRowId ?? rowIndex;
+              const isSelected = selectedRowId !== undefined && rowId === selectedRowId;
+              const rowClasses = [
+                onRowClick ? 'cursor-pointer hover:bg-slate-800/60 transition-colors' : '',
+                isSelected ? 'bg-slate-800/80' : ''
+              ].join(' ').trim();
+
+              return (
+                <tr
+                  key={rowId}
+                  onClick={onRowClick ? () => onRowClick(row, rowIndex) : undefined}
+                  className={rowClasses}
+                >
+                  <td>{rowIndex + 1}</td>
               {columns.map((col, colIndex) => (
                 <td key={`${rowIndex}-${colIndex}`}>
                   {row[col.accessor]}
                 </td>
               ))}
-            </tr>
+                </tr>
+              );
+            })()
           ))}
         </tbody>
       </table>

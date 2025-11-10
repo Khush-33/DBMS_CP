@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../state/AuthContext';
-import BackgroundGlow from '../components/ui/BackgroundGlow';
 
 const AuctionPortalPage = () => {
     const { user } = useAuth();
@@ -11,6 +10,7 @@ const AuctionPortalPage = () => {
     const [soldAnnouncement, setSoldAnnouncement] = useState('');
     const [role, setRole] = useState(null);
     const ws = useRef(null);
+    const apiBaseUrl = useMemo(() => process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001', []);
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:5000');
@@ -26,7 +26,7 @@ const AuctionPortalPage = () => {
                     if (data.state.status === 'sold') setBidHistory([]);
                     break;
                 case 'TEAMS_UPDATE':
-                    setTeams(data.teams);
+                    setTeams(normalizeTeams(data.teams));
                     break;
                 case 'CONNECTED_TEAMS':
                     setConnectedTeams(data.teams);
@@ -47,6 +47,28 @@ const AuctionPortalPage = () => {
             if (ws.current) ws.current.close();
         };
     }, []);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchTeams = async () => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/teams`, { signal: controller.signal });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch teams: ${response.status}`);
+                }
+                const data = await response.json();
+                setTeams(prev => (prev.length ? prev : normalizeTeams(data)));
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error loading teams:', error);
+                }
+            }
+        };
+
+        fetchTeams();
+        return () => controller.abort();
+    }, [apiBaseUrl]);
 
     const sendMessage = (data) => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -71,9 +93,7 @@ const AuctionPortalPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 lg:p-8 font-sans flex flex-col relative">
-            <BackgroundGlow />
-            <div style={{position: 'relative', zIndex: 10}}>
+        <div className="min-h-screen bg-gray-900 text-white p-4 lg:p-8 font-sans flex flex-col">
             {soldAnnouncement && <SoldOverlay message={soldAnnouncement} />}
             <Header role={role} />
             <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
@@ -103,7 +123,6 @@ const AuctionPortalPage = () => {
                     )}
                 </div>
             </div>
-            </div>
         </div>
     );
 };
@@ -115,13 +134,20 @@ const getIncrementStep = (currentBid) => {
     return 1000000; // ₹5Cr+ → +₹10L
 };
 
+const normalizeTeams = (incomingTeams = []) =>
+    incomingTeams.map((team, index) => ({
+        id: team.id ?? team.Team_ID ?? team.teamId ?? `team-${index}`,
+        name: team.name ?? team.Team_Name ?? team.teamName ?? 'Unknown Team',
+        budget: team.budget ?? team.Budget_Remaining ?? team.remainingBudget ?? 0
+    }));
+
 // --- Sub-components ---
 
 const RoleSelectionScreen = ({ teams, onSelectRole, canSelectAuctioneer }) => (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col items-center justify-center z-50">
-        <h1 className="text-5xl font-extrabold text-white mb-4">Select Your Role</h1>
-        <p className="text-gray-400 mb-10">Choose to be the Auctioneer or represent a team.</p>
-        <div className="w-full max-w-4xl p-4">
+    <div className="fixed inset-0 w-screen h-screen bg-gray-900 bg-opacity-95 flex items-center justify-center z-50 px-4">
+        <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-sm rounded-2xl p-8 text-center border border-gray-700">
+            <h1 className="text-5xl font-extrabold text-white mb-4">Select Your Role</h1>
+            <p className="text-gray-400 mb-10">Choose to be the Auctioneer or represent a team.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
                 {canSelectAuctioneer && (
                     <div className="col-span-full">
@@ -132,6 +158,9 @@ const RoleSelectionScreen = ({ teams, onSelectRole, canSelectAuctioneer }) => (
                             AUCTIONEER
                         </button>
                     </div>
+                )}
+                {teams.length === 0 && (
+                    <div className="col-span-full text-sm text-gray-500">Waiting for teams… ensure the API is running.</div>
                 )}
                 {teams.map(team => (
                     <button
