@@ -1,5 +1,23 @@
 /* style.css - Additional Utilities and Helpers */
 
+/* Navigation Active State */
+.nav-link.active {
+  color: var(--primary-cyan) !important;
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary-cyan);
+  border-radius: 2px;
+}
+
 /* Page Layouts */
 .page-container {
   min-height: 100vh;

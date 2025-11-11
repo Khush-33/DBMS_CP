@@ -312,7 +312,7 @@ const AuctioneerControls = ({ auctionState, onStart, onNext, onReset }) => (
                     onReset();
                 }
             }}
-            className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg"
+            className="btn btn-reset w-full mt-3"
         >
             RESET AUCTION
         </button>

@@ -57,6 +57,69 @@ async function initializeTriggers() {
     } catch (e) {
       console.error('Error creating before_bid_insert_trigger:', e.message || e);
     }
+
+    // Player audit log table and trigger
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS PlayerAuditLog (
+          Log_ID INT AUTO_INCREMENT PRIMARY KEY,
+          Player_ID INT NOT NULL,
+          Changed_By_User VARCHAR(100) NULL,
+          Change_Timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          Field_Changed VARCHAR(100) NOT NULL,
+          Old_Value TEXT NULL,
+          New_Value TEXT NULL
+        ) ENGINE=InnoDB`);
+      console.log('Ensured table PlayerAuditLog exists');
+    } catch (e) {
+      console.error('Error ensuring PlayerAuditLog table:', e.message || e);
+    }
+
+    try {
+      await db.query('DROP TRIGGER IF EXISTS after_player_update_audit');
+      const auditTrigger = `CREATE TRIGGER after_player_update_audit
+        AFTER UPDATE ON Players
+        FOR EACH ROW
+        BEGIN
+          IF NEW.Name <> OLD.Name THEN
+            INSERT INTO PlayerAuditLog (Player_ID, Changed_By_User, Field_Changed, Old_Value, New_Value)
+            VALUES (NEW.Player_ID, NULL, 'Name', OLD.Name, NEW.Name);
+          END IF;
+
+          IF NEW.Role <> OLD.Role THEN
+            INSERT INTO PlayerAuditLog (Player_ID, Changed_By_User, Field_Changed, Old_Value, New_Value)
+            VALUES (NEW.Player_ID, NULL, 'Role', OLD.Role, NEW.Role);
+          END IF;
+
+          IF NEW.Country <> OLD.Country THEN
+            INSERT INTO PlayerAuditLog (Player_ID, Changed_By_User, Field_Changed, Old_Value, New_Value)
+            VALUES (NEW.Player_ID, NULL, 'Country', OLD.Country, NEW.Country);
+          END IF;
+
+          IF NEW.Base_Price <> OLD.Base_Price THEN
+            INSERT INTO PlayerAuditLog (Player_ID, Changed_By_User, Field_Changed, Old_Value, New_Value)
+            VALUES (NEW.Player_ID, NULL, 'Base_Price', CAST(OLD.Base_Price AS CHAR), CAST(NEW.Base_Price AS CHAR));
+          END IF;
+
+          IF NEW.Status <> OLD.Status THEN
+            INSERT INTO PlayerAuditLog (Player_ID, Changed_By_User, Field_Changed, Old_Value, New_Value)
+            VALUES (NEW.Player_ID, NULL, 'Status', OLD.Status, NEW.Status);
+          END IF;
+        END`;
+      await db.query(auditTrigger);
+      console.log('Created trigger after_player_update_audit');
+    } catch (e) {
+      console.error('Error creating after_player_update_audit:', e.message || e);
+    }
+
+    // Remove any bid finalization trigger to ensure budgets are only adjusted on final sale
+    try {
+      await db.query('DROP TRIGGER IF EXISTS after_bid_insert_finalize_sale');
+      await db.query('DROP TRIGGER IF EXISTS after_player_sold_trigger');
+      console.log('Ensured sale-related bid triggers are dropped (budget will be adjusted on sale only).');
+    } catch (e) {
+      console.error('Error dropping sale-related triggers:', e.message || e);
+    }
   } catch (error) {
     console.error('Error initializing triggers:', error);
   }

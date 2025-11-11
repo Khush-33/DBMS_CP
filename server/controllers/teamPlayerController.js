@@ -30,32 +30,52 @@ exports.getSquadByTeam = async (req, res) => {
 };
 
 // @desc    Add a player to a team (records a purchase)
+//          Creates a Bid so DB triggers can update Team_Players, Players.Status, and Teams budget.
 // @route   POST /api/squads
 exports.addTeamPlayer = async (req, res) => {
+  const conn = await db.getConnection();
   try {
     const { Team_ID, Player_ID, Auction_ID = 1, Price } = req.body;
     if (!Team_ID || !Player_ID || !Price) {
+      conn.release();
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if player is already in a team for this auction
-    const [existingPlayer] = await db.query(
-      'SELECT * FROM Team_Players WHERE Player_ID = ? AND Auction_ID = ?',
+    await conn.beginTransaction();
+
+    // Ensure player not already assigned in this auction
+    const [existing] = await conn.query(
+      'SELECT 1 FROM Team_Players WHERE Player_ID = ? AND Auction_ID = ? LIMIT 1',
       [Player_ID, Auction_ID]
     );
-
-    if (existingPlayer.length > 0) {
-      return res.status(400).json({ 
-        message: 'Player is already assigned to a team in this auction' 
-      });
+    if (existing.length > 0) {
+      await conn.rollback();
+      conn.release();
+      return res.status(400).json({ message: 'Player is already assigned to a team in this auction' });
     }
 
-    await db.query(
-      'INSERT INTO Team_Players (Team_ID, Player_ID, Auction_ID, Price) VALUES (?, ?, ?, ?)',
-      [Team_ID, Player_ID, Auction_ID, Price]
+    // Optional budget check before bid
+    const [[team]] = await conn.query('SELECT Budget_Remaining FROM Teams WHERE Team_ID = ?', [Team_ID]);
+    if (!team) {
+      await conn.rollback();
+      conn.release();
+      return res.status(404).json({ message: 'Team not found' });
+    }
+    if (team.Budget_Remaining < Price) {
+      await conn.rollback();
+      conn.release();
+      return res.status(400).json({ message: 'Insufficient team budget' });
+    }
+
+    // Create a bid; AFTER INSERT trigger on Bids will upsert Team_Players, set player Sold, and adjust budget
+    await conn.query(
+      'INSERT INTO Bids (Auction_ID, Player_ID, Team_ID, Bid_Amount, Bid_Time) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)',
+      [Auction_ID, Player_ID, Team_ID, Price]
     );
 
-    // Return the inserted row
+    await conn.commit();
+
+    // Fetch the assignment row after trigger effects
     const [rows] = await db.query(
       `SELECT 
         tp.*,
@@ -64,17 +84,19 @@ exports.addTeamPlayer = async (req, res) => {
       FROM Team_Players tp 
       JOIN Players p ON tp.Player_ID = p.Player_ID 
       JOIN Teams t ON tp.Team_ID = t.Team_ID 
-      WHERE tp.Player_ID = ? AND tp.Team_ID = ? AND tp.Auction_ID = ?`,
-      [Player_ID, Team_ID, Auction_ID]
+      WHERE tp.Player_ID = ? AND tp.Auction_ID = ?`,
+      [Player_ID, Auction_ID]
     );
 
-    res.status(201).json(rows[0] || { message: 'Player assigned to team' });
+    conn.release();
+    return res.status(201).json(rows[0] || { message: 'Player sold and recorded via bid' });
   } catch (error) {
+    try { await conn.rollback(); } catch (_) {}
+    conn.release();
     console.error('Error adding team player:', error);
     if (error.code === 'ER_DUP_ENTRY') {
-      res.status(400).json({ message: 'Player is already assigned to a team' });
-    } else {
-      res.status(500).json({ message: 'Server Error' });
+      return res.status(400).json({ message: 'Player is already assigned to a team' });
     }
+    return res.status(500).json({ message: 'Server Error' });
   }
 };

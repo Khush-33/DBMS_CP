@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchAuctions, adminAddAuction } from '../services/api';
+import { toast } from 'react-hot-toast';
+import { fetchAuctions, fetchVenues, adminAddAuction } from '../services/api';
 
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
@@ -8,11 +9,13 @@ const AuctionsPage = () => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddAuction, setShowAddAuction] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [auctionDate, setAuctionDate] = useState('');
   const [season, setSeason] = useState('');
   const [venueId, setVenueId] = useState('');
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState(null);
+  const [venues, setVenues] = useState([]);
 
   useEffect(() => {
     const getAuctions = async () => {
@@ -26,6 +29,15 @@ const AuctionsPage = () => {
       }
     };
     getAuctions();
+    // load venues for dropdown
+    (async () => {
+      try {
+        const res = await fetchVenues();
+        setVenues(res.data || []);
+      } catch (e) {
+        // non-fatal
+      }
+    })();
   }, []);
 
   const columns = useMemo(() => [
@@ -83,7 +95,12 @@ const AuctionsPage = () => {
             Explore the history of IPL auction events, venues, and seasons
           </p>
           <div className="mt-4">
-            <button className="btn-primary" onClick={() => setShowAddAuction(true)}>Add Auction</button>
+            <button 
+              className={showAddForm ? "btn btn-close" : "btn btn-add"} 
+              onClick={() => setShowAddForm(v => !v)}
+            >
+              {showAddForm ? 'Close' : 'Add Auction'}
+            </button>
           </div>
         </div>
 
@@ -94,6 +111,44 @@ const AuctionsPage = () => {
           { label: 'Current Status', value: 'Live' }
         ]} />
 
+        {showAddForm && (
+          <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
+            <h3 className="text-lg font-bold mb-3">Add New Auction</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setAddError(null);
+              if (!auctionDate || !season || !venueId) {
+                setAddError('Please fill all fields');
+                return;
+              }
+              setSaving(true);
+              try {
+                await adminAddAuction(auctionDate, Number(season), Number(venueId));
+                const res = await fetchAuctions();
+                setAuctions(res.data);
+                setShowAddForm(false);
+                setAuctionDate(''); setSeason(''); setVenueId('');
+                toast.success('Auction added');
+              } catch (e) { setAddError('Failed to add auction'); toast.error(e?.response?.data?.message || 'Failed to add auction'); }
+              finally { setSaving(false); }
+            }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <input type="date" value={auctionDate} onChange={(e)=>setAuctionDate(e.target.value)} className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+              <input type="number" value={season} onChange={(e)=>setSeason(e.target.value)} placeholder="Season (year)" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+              <select value={venueId} onChange={(e)=>setVenueId(e.target.value)} className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                <option value="">Select venue</option>
+                {venues.map(v => (
+                  <option key={v.Venue_ID} value={v.Venue_ID}>{v.Venue_Name} ({v.City})</option>
+                ))}
+              </select>
+              <div className="md:col-span-4 flex items-center gap-3 mt-2">
+                <button type="submit" disabled={saving} className={`btn btn-save ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}>{saving ? 'Saving…' : 'Save'}</button>
+                <button type="button" onClick={()=>{ setShowAddForm(false); setAuctionDate(''); setSeason(''); setVenueId(''); setAddError(null); }} className="btn-outline">Cancel</button>
+                {addError && <div className="text-red-400 ml-3">{addError}</div>}
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Table Section */}
         <section className="bg-black/30 backdrop-blur-md border border-gray-600/30 rounded-3xl p-6 shadow-2xl">
           <div className="mb-4">
@@ -103,45 +158,6 @@ const AuctionsPage = () => {
           <CustomTable columns={columns} data={formattedAuctions} />
         </section>
       </div>
-
-      {/* Add Auction Modal */}
-      {showAddAuction && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Add Auction</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Auction Date</label>
-                <input type="date" className="w-full input" value={auctionDate} onChange={e=>setAuctionDate(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Season (Year)</label>
-                <input type="number" className="w-full input" value={season} onChange={e=>setSeason(e.target.value)} placeholder="e.g., 2026" />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Venue ID</label>
-                <input type="number" className="w-full input" value={venueId} onChange={e=>setVenueId(e.target.value)} placeholder="e.g., 1" />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button className="btn-outline" onClick={()=>setShowAddAuction(false)} disabled={saving}>Cancel</button>
-                <button className="btn-primary" disabled={saving || !auctionDate || !season || !venueId}
-                  onClick={async ()=>{
-                    setSaving(true);
-                    try {
-                      await adminAddAuction(auctionDate, Number(season), Number(venueId));
-                      const res = await fetchAuctions();
-                      setAuctions(res.data);
-                      setShowAddAuction(false);
-                      setAuctionDate(''); setSeason(''); setVenueId('');
-                    } catch(e) { alert('Failed to add auction'); }
-                    finally { setSaving(false); }
-                  }}
-                >{saving ? 'Saving…' : 'Create'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ActionButton, OutlineButton } from '../components/ui/PrimaryButton';
 import InfoCards from '../components/ui/InfoCards';
 import Icon from '../components/ui/Icon';
-import { fetchTeams, fetchPlayers, fetchAuctions, fetchBids, adminAddTeam, adminAddVenue, adminAddSponsor, adminAddAuction } from '../services/api';
+import { fetchTeams, fetchPlayers, fetchAuctions, fetchBids } from '../services/api';
 
 // Small section wrapper to keep a consistent, minimal card look
 const SectionBox = ({ children, className = '' }) => (
@@ -54,7 +54,6 @@ const HomePage = () => {
   const [stats, setStats] = useState({ teams: null, players: null, auctions: null, bids: null });
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
-  const [busy, setBusy] = useState(false);
 
   const resetAuction = async () => {
     if (!window.confirm('Reset the entire auction? This will clear bids, squads, mark all players Available, and set all budgets to 100 Cr.')) return;
@@ -92,83 +91,6 @@ const HomePage = () => {
     return () => { mounted = false };
   }, []);
 
-  // --- Quick Admin Actions (prompt-based) ---
-  const quickAddTeam = async () => {
-    const teamName = window.prompt('Enter Team Name');
-    if (!teamName) return;
-    const ownerName = window.prompt('Enter Owner Name');
-    if (!ownerName) return;
-    setBusy(true);
-    try {
-      await adminAddTeam(teamName, ownerName);
-      alert('Team added');
-    } catch (e) {
-      console.error(e);
-      alert('Failed to add team');
-    } finally { setBusy(false); }
-  };
-
-  const quickAddVenue = async () => {
-    const venueName = window.prompt('Enter Venue Name');
-    if (!venueName) return;
-    const city = window.prompt('Enter City');
-    if (!city) return;
-    const capacityStr = window.prompt('Enter Capacity (number)');
-    if (!capacityStr) return;
-    const capacity = parseInt(capacityStr, 10);
-    if (Number.isNaN(capacity)) return alert('Invalid capacity');
-    setBusy(true);
-    try {
-      await adminAddVenue(venueName, city, capacity);
-      alert('Venue added');
-    } catch (e) {
-      console.error(e);
-      alert('Failed to add venue');
-    } finally { setBusy(false); }
-  };
-
-  const quickAddSponsor = async () => {
-    const sponsorName = window.prompt('Enter Sponsor Name');
-    if (!sponsorName) return;
-    const amountStr = window.prompt('Enter Amount in INR (e.g. 50000000 for 5 Cr)');
-    if (!amountStr) return;
-    const amount = Number(amountStr);
-    if (!Number.isFinite(amount)) return alert('Invalid amount');
-    const teamIdStr = window.prompt('Enter Team ID');
-    if (!teamIdStr) return;
-    const teamId = parseInt(teamIdStr, 10);
-    if (Number.isNaN(teamId)) return alert('Invalid Team ID');
-    setBusy(true);
-    try {
-      await adminAddSponsor(sponsorName, amount, teamId);
-      alert('Sponsor added');
-    } catch (e) {
-      console.error(e);
-      alert('Failed to add sponsor');
-    } finally { setBusy(false); }
-  };
-
-  const quickAddAuction = async () => {
-    const auctionDate = window.prompt('Enter Auction Date (YYYY-MM-DD)');
-    if (!auctionDate) return;
-    const seasonStr = window.prompt('Enter Season (year)');
-    if (!seasonStr) return;
-    const season = parseInt(seasonStr, 10);
-    if (Number.isNaN(season)) return alert('Invalid season');
-    const venueIdStr = window.prompt('Enter Venue ID');
-    if (!venueIdStr) return;
-    const venueId = parseInt(venueIdStr, 10);
-    if (Number.isNaN(venueId)) return alert('Invalid Venue ID');
-    setBusy(true);
-    try {
-      await adminAddAuction(auctionDate, season, venueId);
-      alert('Auction added');
-    } catch (e) {
-      console.error(e);
-      alert('Failed to add auction');
-    } finally { setBusy(false); }
-  };
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -201,29 +123,7 @@ const HomePage = () => {
           { label: 'Bids', value: stats.bids, loading }
         ]} />
 
-        {/* Admin Quick Actions (legacy prompt-based) */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          <button onClick={quickAddTeam} disabled={busy} className={`card p-4 text-left ${busy ? 'opacity-60' : ''}`}>
-            <div className="text-2xl mb-2">➕🏆</div>
-            <div className="font-semibold">Add Team</div>
-            <div className="text-gray-400 text-sm">Quick add via stored procedure</div>
-          </button>
-          <button onClick={quickAddVenue} disabled={busy} className={`card p-4 text-left ${busy ? 'opacity-60' : ''}`}>
-            <div className="text-2xl mb-2">➕🏟️</div>
-            <div className="font-semibold">Add Venue</div>
-            <div className="text-gray-400 text-sm">Quick add via stored procedure</div>
-          </button>
-          <button onClick={quickAddSponsor} disabled={busy} className={`card p-4 text-left ${busy ? 'opacity-60' : ''}`}>
-            <div className="text-2xl mb-2">➕💼</div>
-            <div className="font-semibold">Add Sponsor</div>
-            <div className="text-gray-400 text-sm">Quick add via stored procedure</div>
-          </button>
-          <button onClick={quickAddAuction} disabled={busy} className={`card p-4 text-left ${busy ? 'opacity-60' : ''}`}>
-            <div className="text-2xl mb-2">➕⚡</div>
-            <div className="font-semibold">Add Auction</div>
-            <div className="text-gray-400 text-sm">Quick add via stored procedure</div>
-          </button>
-        </section>
+        {/* Admin Quick Actions removed as requested; use entity pages for adding items */}
 
         {/* Quick Access Cards */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in-up">

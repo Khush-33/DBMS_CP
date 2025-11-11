@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './style.css';
 import App from './App';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './state/AuthContext';
 import reportWebVitals from './reportWebVitals';
 
@@ -36,6 +37,7 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <App />
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
     </AuthProvider>
   </React.StrictMode>
 );

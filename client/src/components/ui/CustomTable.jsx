@@ -24,7 +24,7 @@ const CustomTable = ({ columns, data }) => {
             <tr key={rowIndex}>
               {columns.map((col, colIndex) => (
                 <td key={`${rowIndex}-${colIndex}`}>
-                  {row[col.accessor]}
+                  {col.Cell ? col.Cell({ value: row[col.accessor], row }) : row[col.accessor]}
                 </td>
               ))}
             </tr>

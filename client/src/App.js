@@ -18,8 +18,6 @@ import VenuesPage from './pages/VenuesPage';
 import PlayerStatsPage from './pages/PlayerStatsPage';
 import TeamPlayersPage from './pages/TeamPlayersPage';
 import AuctionPortalPage from './pages/AuctionPortalPage';
-import QueryAnalyzerPage from './pages/QueryAnalyzerPage';
-import QueryAnalysisPage from './pages/QueryAnalysisPage';
 import ReportsPage from './pages/ReportsPage';
 
 function App() {
@@ -41,8 +39,7 @@ function App() {
           <Route path="/player-stats" element={<PlayerStatsPage />} />
           <Route path="/team-players" element={<TeamPlayersPage />} />
           <Route path="/live-auction" element={<AuctionPortalPage />} />
-          <Route path="/analyze" element={<QueryAnalyzerPage />} />
-          <Route path="/query-analysis" element={<ProtectedRoute roles={["owner","manager"]}><QueryAnalysisPage /></ProtectedRoute>} />
+          { /* Query Analyzer routes removed per request */ }
           <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </Layout>

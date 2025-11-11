@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchTeams, adminAddTeam } from '../services/api';
-import CustomTable from '../components/ui/CustomTable';
+import EnhancedTable from '../components/ui/EnhancedTable';
+import TableSkeleton from '../components/ui/TableSkeleton';
 import InfoCards from '../components/ui/InfoCards';
 import PageTitle from '../components/ui/PageTitle';
 
@@ -9,10 +10,11 @@ const TeamsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [parallaxY, setParallaxY] = useState(0)
-  const [showAddTeam, setShowAddTeam] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState(null);
 
   useEffect(() => {
     const onScroll = () => setParallaxY(window.scrollY * 0.08)
@@ -37,9 +39,13 @@ const TeamsPage = () => {
   }, []);
 
   const columns = useMemo(() => [
-    { Header: 'Team Name', accessor: 'Team_Name' },
-    { Header: 'Owner', accessor: 'Owner_Name' },
-    { Header: 'Budget Remaining (in Cr)', accessor: 'Budget_Remaining' },
+    { 
+      header: 'Team Name', 
+      accessorKey: 'Team_Name',
+      cell: (info) => <span className="font-semibold text-orange-400">{info.getValue()}</span>
+    },
+    { header: 'Owner', accessorKey: 'Owner_Name' },
+    { header: 'Budget Remaining', accessorKey: 'Budget_Remaining' },
   ], []);
 
   const formattedTeams = teams.map(team => ({
@@ -72,9 +78,49 @@ const TeamsPage = () => {
           <h1 className="text-4xl font-bold mb-3">IPL Teams</h1>
           <p className="text-gray-400">Franchise teams, ownership, and budget management</p>
           <div className="mt-4">
-            <button className="btn-primary" onClick={() => setShowAddTeam(true)}>Add Team</button>
+            <button 
+              className={showAddForm ? "btn btn-close" : "btn btn-add"} 
+              onClick={() => setShowAddForm(v => !v)}
+            >
+              {showAddForm ? 'Close' : 'Add Team'}
+            </button>
           </div>
         </header>
+
+        {showAddForm && (
+          <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
+            <h3 className="text-lg font-bold mb-3">Add New Team</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setAddError(null);
+              if (!teamName || !ownerName) {
+                setAddError('Please enter team and owner name');
+                return;
+              }
+              setSaving(true);
+              try {
+                await adminAddTeam(teamName, ownerName);
+                const response = await fetchTeams();
+                setTeams(response.data);
+                setShowAddForm(false);
+                setTeamName('');
+                setOwnerName('');
+              } catch (e) {
+                setAddError('Failed to add team');
+              } finally {
+                setSaving(false);
+              }
+            }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input value={teamName} onChange={(e)=>setTeamName(e.target.value)} placeholder="Team name" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+              <input value={ownerName} onChange={(e)=>setOwnerName(e.target.value)} placeholder="Owner name" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+              <div className="md:col-span-4 flex items-center gap-3 mt-2">
+                <button type="submit" disabled={saving} className={`btn btn-save ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}>{saving ? 'Saving…' : 'Save'}</button>
+                <button type="button" onClick={() => { setShowAddForm(false); setTeamName(''); setOwnerName(''); setAddError(null); }} className="btn-outline">Cancel</button>
+                {addError && <div className="text-red-400 ml-3">{addError}</div>}
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="mb-8">
           <InfoCards items={[
@@ -85,61 +131,15 @@ const TeamsPage = () => {
         </div>
 
         <div className="card">
-          <CustomTable columns={columns} data={formattedTeams} />
+          {loading ? (
+            <TableSkeleton rows={8} columns={4} />
+          ) : (
+            <EnhancedTable columns={columns} data={formattedTeams} />
+          )}
         </div>
       </div>
 
-      <AddTeamModal 
-        open={showAddTeam}
-        onClose={() => setShowAddTeam(false)}
-        teamName={teamName}
-        setTeamName={setTeamName}
-        ownerName={ownerName}
-        setOwnerName={setOwnerName}
-        saving={saving}
-        onSubmit={async () => {
-          if (!teamName || !ownerName) return;
-          setSaving(true);
-          try {
-            await adminAddTeam(teamName, ownerName);
-            const response = await fetchTeams();
-            setTeams(response.data);
-            setShowAddTeam(false);
-            setTeamName('');
-            setOwnerName('');
-          } catch (e) {
-            alert('Failed to add team');
-          } finally {
-            setSaving(false);
-          }
-        }}
-      />
-    </div>
-  );
-};
-
-// Modal component for adding a team
-const AddTeamModal = ({ open, onClose, onSubmit, teamName, setTeamName, ownerName, setOwnerName, saving }) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-md">
-        <h3 className="text-xl font-bold mb-4">Add Team</h3>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Team Name</label>
-            <input className="w-full input" value={teamName} onChange={e=>setTeamName(e.target.value)} placeholder="e.g., Mumbai Indians" />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Owner Name</label>
-            <input className="w-full input" value={ownerName} onChange={e=>setOwnerName(e.target.value)} placeholder="e.g., Reliance Industries" />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button className="btn-outline" onClick={onClose} disabled={saving}>Cancel</button>
-            <button className="btn-primary" onClick={onSubmit} disabled={saving || !teamName || !ownerName}>{saving ? 'Saving…' : 'Create'}</button>
-          </div>
-        </div>
-      </div>
+      {/* Inline form replaces modal */}
     </div>
   );
 };

@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchPlayers, addPlayer, fetchTeams, postTeamPlayer, searchPlayers } from '../services/api';
-import CustomTable from '../components/ui/CustomTable';
+import EnhancedTable from '../components/ui/EnhancedTable';
+import TableSkeleton from '../components/ui/TableSkeleton';
+import { toast } from 'react-hot-toast';
 import InfoCards from '../components/ui/InfoCards';
 import PageTitle from '../components/ui/PageTitle';
+import Badge from '../components/ui/Badge';
+import FilterChip from '../components/ui/FilterChip';
 
 const PlayersPage = () => {
   const [players, setPlayers] = useState([]);
@@ -10,6 +14,8 @@ const PlayersPage = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  const [roleFilter, setRoleFilter] = useState('All Roles');
+  const [countryFilter, setCountryFilter] = useState('All Countries');
   // subtle parallax value for hero accent (must be before conditional returns)
   const [parallaxY, setParallaxY] = useState(0)
 
@@ -35,14 +41,60 @@ const PlayersPage = () => {
   }, [])
 
   const columns = useMemo(() => [
-    { Header: 'Name', accessor: 'Name' },
-    { Header: 'Role', accessor: 'Role' },
-    { Header: 'Country', accessor: 'Country' },
-    { Header: 'Base Price', accessor: 'Base_Price' },
-    { Header: 'Status', accessor: 'Status' },
+    { 
+      header: 'Name', 
+      accessorKey: 'Name',
+      cell: (info) => <span className="font-medium">{info.getValue()}</span>
+    },
+    { header: 'Role', accessorKey: 'Role' },
+    { header: 'Country', accessorKey: 'Country' },
+    { header: 'Base Price', accessorKey: 'Base_Price' },
+    { 
+      header: 'Status', 
+      accessorKey: 'Status',
+      cell: (info) => (
+        <Badge 
+          variant={
+            info.getValue() === 'Sold' ? 'error' : 
+            info.getValue() === 'Available' ? 'success' : 
+            'default'
+          }
+          size="sm"
+        >
+          {info.getValue()}
+        </Badge>
+      )
+    },
   ], []);
-  
-  const formattedPlayers = players.map(player => ({
+
+  const roles = Array.from(new Set(players.map(p => p.Role))).filter(Boolean).sort();
+  const countries = Array.from(new Set(players.map(p => p.Country))).filter(Boolean).sort();
+
+  // Role options for add form (merge known roles with defaults)
+  const roleOptionsDefault = ['Batsman','Bowler','All-Rounder','Wicket-Keeper'];
+  const roleOptions = Array.from(new Set([...roleOptionsDefault, ...roles]));
+
+  const filteredPlayers = players.filter(p => {
+    const roleOk = roleFilter === 'All Roles' || p.Role === roleFilter;
+    const countryOk = countryFilter === 'All Countries' || p.Country === countryFilter;
+    return roleOk && countryOk;
+  });
+
+  const activeFilters = [];
+  if (roleFilter !== 'All Roles') activeFilters.push({ type: 'role', label: `Role: ${roleFilter}` });
+  if (countryFilter !== 'All Countries') activeFilters.push({ type: 'country', label: `Country: ${countryFilter}` });
+
+  const clearAllFilters = () => {
+    setRoleFilter('All Roles');
+    setCountryFilter('All Countries');
+  };
+
+  const removeFilter = (type) => {
+    if (type === 'role') setRoleFilter('All Roles');
+    if (type === 'country') setCountryFilter('All Countries');
+  };
+
+  const formattedPlayers = filteredPlayers.map(player => ({
     ...player,
     Base_Price: `₹ ${(player.Base_Price / 100000).toFixed(2)} L`
   }));
@@ -93,9 +145,12 @@ const PlayersPage = () => {
       const resp = await fetchPlayers();
       setPlayers(resp.data);
       setSellForm({ Player_ID: '', Team_ID: '', Price: '' });
+      toast.success('Player sold');
     } catch (err) {
       console.error('Sell player failed', err);
-      setSellError(err.response?.data?.message || 'Failed to record sale');
+      const msg = err.response?.data?.message || 'Failed to record sale';
+      setSellError(msg);
+      toast.error(msg);
     } finally {
       setSelling(false);
     }
@@ -124,9 +179,12 @@ const PlayersPage = () => {
       setPlayers(resp.data);
       setShowAddForm(false);
       setNewPlayer({ Name: '', Role: '', Base_Price: '', Country: '' });
+      toast.success('Player added');
     } catch (err) {
       console.error('Add player failed', err);
-      setAddError(err.response?.data?.message || 'Failed to add player');
+      const msg = err.response?.data?.message || 'Failed to add player';
+      setAddError(msg);
+      toast.error(msg);
     } finally {
       setAdding(false);
     }
@@ -166,34 +224,84 @@ const PlayersPage = () => {
           ]} />
         </div>
 
-        <div className="mb-6 flex items-center justify-end gap-3">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={async (e) => {
-                const query = e.target.value;
-                setSearchQuery(query);
-                setSearching(true);
-                try {
-                  if (query.trim()) {
-                    const response = await searchPlayers(query);
-                    setPlayers(response.data);
-                  } else {
-                    const response = await fetchPlayers();
-                    setPlayers(response.data);
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[240px]">
+              <label htmlFor="player-search" className="sr-only">Search players</label>
+              <input
+                id="player-search"
+                type="text"
+                value={searchQuery}
+                onChange={async (e) => {
+                  const query = e.target.value;
+                  setSearchQuery(query);
+                  setSearching(true);
+                  try {
+                    if (query.trim()) {
+                      const response = await searchPlayers(query);
+                      setPlayers(response.data);
+                    } else {
+                      const response = await fetchPlayers();
+                      setPlayers(response.data);
+                    }
+                  } catch (err) {
+                    setError('Search failed');
+                  } finally {
+                    setSearching(false);
                   }
-                } catch (err) {
-                  setError('Search failed');
-                } finally {
-                  setSearching(false);
-                }
-              }}
-              placeholder="Search by name, role, or country..."
-              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white"
-            />
+                }}
+                placeholder="Search by name, role, or country..."
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                aria-label="Search players by name, role, or country"
+              />
+            </div>
+            <label htmlFor="role-filter" className="sr-only">Filter by role</label>
+            <select 
+              id="role-filter"
+              value={roleFilter} 
+              onChange={(e)=>setRoleFilter(e.target.value)} 
+              className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-orange-500"
+              aria-label="Filter players by role"
+            >
+              <option>All Roles</option>
+              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <label htmlFor="country-filter" className="sr-only">Filter by country</label>
+            <select 
+              id="country-filter"
+              value={countryFilter} 
+              onChange={(e)=>setCountryFilter(e.target.value)} 
+              className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-orange-500"
+              aria-label="Filter players by country"
+            >
+              <option>All Countries</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button 
+              onClick={() => setShowAddForm(s => !s)} 
+              className={showAddForm ? "btn btn-close" : "btn btn-add"}
+            >
+              {showAddForm ? 'Close' : 'Add Player'}
+            </button>
           </div>
-          <button onClick={() => setShowAddForm(s => !s)} className="btn-accent">{showAddForm ? 'Close' : 'Add Player'}</button>
+          {activeFilters.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-400">Active filters:</span>
+              {activeFilters.map((filter) => (
+                <FilterChip
+                  key={filter.type}
+                  label={filter.label}
+                  onRemove={() => removeFilter(filter.type)}
+                />
+              ))}
+              <button
+                onClick={clearAllFilters}
+                className="text-sm text-orange-400 hover:text-orange-300 underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
 
         {showAddForm && (
@@ -201,12 +309,17 @@ const PlayersPage = () => {
             <h3 className="text-lg font-bold mb-3">Add New Player</h3>
             <form onSubmit={submitAddPlayer} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <input value={newPlayer.Name} onChange={handleAddChange('Name')} placeholder="Player name" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
-              <input value={newPlayer.Role} onChange={handleAddChange('Role')} placeholder="Role (e.g. Batsman)" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
+              <select value={newPlayer.Role} onChange={handleAddChange('Role')} className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                <option value="">Select role</option>
+                {roleOptions.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
               <input value={newPlayer.Base_Price} onChange={handleAddChange('Base_Price')} placeholder="Base price (number)" type="number" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
               <input value={newPlayer.Country} onChange={handleAddChange('Country')} placeholder="Country" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
 
               <div className="md:col-span-4 flex items-center gap-3 mt-2">
-                <button type="submit" disabled={adding} className={`btn-accent ${adding ? 'opacity-60 cursor-not-allowed' : ''}`}>Save</button>
+                <button type="submit" disabled={adding} className={`btn btn-save ${adding ? 'opacity-60 cursor-not-allowed' : ''}`}>Save</button>
                 <button type="button" onClick={() => { setShowAddForm(false); setNewPlayer({ Name: '', Role: '', Base_Price: '', Country: '' }); }} className="btn-outline">Cancel</button>
                 {addError && <div className="text-red-400 ml-3">{addError}</div>}
               </div>
@@ -231,7 +344,7 @@ const PlayersPage = () => {
             </select>
             <input value={sellForm.Price} onChange={handleSellChange('Price')} placeholder="Sale price" type="number" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
             <div className="md:col-span-4 flex items-center gap-3 mt-2">
-              <button type="submit" disabled={selling} className={`btn-accent ${selling ? 'opacity-60 cursor-not-allowed' : ''}`}>Record Sale</button>
+              <button type="submit" disabled={selling} className={`btn btn-save ${selling ? 'opacity-60 cursor-not-allowed' : ''}`}>Record Sale</button>
               <button type="button" onClick={() => setSellForm({ Player_ID: '', Team_ID: '', Price: '' })} className="btn-outline">Clear</button>
               {sellError && <div className="text-red-400 ml-3">{sellError}</div>}
             </div>
@@ -239,7 +352,11 @@ const PlayersPage = () => {
         </div>
 
         <div className="card">
-          <CustomTable columns={columns} data={formattedPlayers} />
+          {loading ? (
+            <TableSkeleton rows={10} columns={5} />
+          ) : (
+            <EnhancedTable columns={columns} data={formattedPlayers} />
+          )}
         </div>
 
         <FranchiseTeams />

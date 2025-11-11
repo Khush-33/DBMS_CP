@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { fetchBids, fetchTeams, postBid, fetchPlayers } from '../services/api';
 import CustomTable from '../components/ui/CustomTable';
 import InfoCards from '../components/ui/InfoCards';
+import BidTrendChart from '../components/charts/BidTrendChart';
 
 const BidsPage = () => {
   const [bids, setBids] = useState([]);
@@ -20,8 +21,8 @@ const BidsPage = () => {
     const getBids = async () => {
       try {
         const response = await fetchBids();
-  setBids(response.data);
-  setFilteredBids(response.data);
+        setBids(response.data);
+        setFilteredBids(response.data);
       } catch (err) {
         setError('Failed to fetch bid history.');
       } finally {
@@ -173,8 +174,8 @@ const BidsPage = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="flex items-center gap-3">
-                <button onClick={() => applyFilters()} className="btn-accent">Apply</button>
-                <button onClick={() => resetFilters()} className="btn-outline">Reset</button>
+                <button onClick={() => applyFilters()} className="btn btn-apply">Apply</button>
+                <button onClick={() => resetFilters()} className="btn btn-outline">Reset</button>
               </div>
               <span className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
               <span className="text-green-400 font-semibold">Live Updates</span>
@@ -196,11 +197,19 @@ const BidsPage = () => {
             </select>
             <input value={manualBid.Bid_Amount} onChange={handleManualChange('Bid_Amount')} placeholder="Amount" type="number" className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white" />
             <div className="flex items-center gap-3">
-              <button type="submit" disabled={postingBid} className={`btn-accent ${postingBid ? 'opacity-60' : ''}`}>Post Bid</button>
+              <button type="submit" disabled={postingBid} className={`btn btn-save ${postingBid ? 'opacity-60' : ''}`}>Post Bid</button>
               {bidError && <div className="text-red-400">{bidError}</div>}
             </div>
           </form>
         </div>
+
+        {/* Bid Trend Chart */}
+        {bids.length > 0 && (
+          <div className="bg-black/20 backdrop-blur-sm border border-gray-600/30 rounded-2xl p-6 mb-6">
+            <h3 className="text-lg font-bold mb-4">Bid Trend (Last 10 Bids)</h3>
+            <BidTrendChart bids={bids} />
+          </div>
+        )}
 
         {/* Table Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

@@ -25,25 +25,20 @@ exports.getAllBids = async (req, res) => {
     }
 };
 
-// @desc    Add a bid (will trigger DB validations if triggers exist)
+// @desc    Add a bid (simple insert; DB triggers will validate if present)
 // @route   POST /api/bids
 exports.addBid = async (req, res) => {
     try {
-        const { Auction_ID = 1, Player_ID, Team_ID, Bid_Amount } = req.body;
-        if (!Player_ID || !Team_ID || !Bid_Amount) {
+        const { Auction_ID, Player_ID, Team_ID, Bid_Amount } = req.body;
+        if (!Auction_ID || !Player_ID || !Team_ID || !Bid_Amount) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        // Insert into Bids; your AFTER INSERT trigger will finalize the sale and budgets
-        await db.query('INSERT INTO Bids (Auction_ID, Player_ID, Team_ID, Bid_Amount) VALUES (?, ?, ?, ?)', [Auction_ID, Player_ID, Team_ID, Bid_Amount]);
-
-        const [rows] = await db.query('SELECT b.*, t.Team_Name, p.Name as Player_Name FROM Bids b JOIN Teams t ON b.Team_ID = t.Team_ID JOIN Players p ON b.Player_ID = p.Player_ID WHERE b.Player_ID = ? ORDER BY b.Bid_Time DESC LIMIT 1', [Player_ID]);
-        // Also fetch the resulting Team_Players row to confirm persistence
-        const [tpRows] = await db.query('SELECT * FROM Team_Players WHERE Player_ID = ? AND Auction_ID = ? LIMIT 1', [Player_ID, Auction_ID]);
-        res.status(201).json({ bid: rows[0] || null, teamPlayer: tpRows[0] || null, message: 'Bid recorded' });
+        await db.query('INSERT INTO Bids (Auction_ID, Player_ID, Team_ID, Bid_Amount) VALUES (?, ?, ?, ?)', 
+            [Auction_ID, Player_ID, Team_ID, Bid_Amount]);
+        return res.status(201).json({ message: 'Bid added successfully' });
     } catch (error) {
         console.error('Error adding bid:', error);
-        // If db.signaled an error from trigger, surface it
-        return res.status(500).json({ message: error.message || 'Server Error' });
+        return res.status(500).json({ message: 'Server Error' });
     }
 };

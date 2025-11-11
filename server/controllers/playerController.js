@@ -11,7 +11,7 @@ exports.searchPlayers = async (req, res) => {
 
     const searchQuery = `%${query}%`;
     const [rows] = await db.query(
-      `SELECT Player_ID, Name, Role, Base_Price, Country, Status 
+      `SELECT Player_ID, Name, Role, Base_Price, Country, PlayerTier, Status 
        FROM Players 
        WHERE Name LIKE ? OR Role LIKE ? OR Country LIKE ?
        ORDER BY Name`,
@@ -29,7 +29,8 @@ exports.searchPlayers = async (req, res) => {
 // @route   GET /api/players
 exports.getAllPlayers = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT Player_ID, Name, Role, Base_Price, Country, Status FROM Players');
+    const [rows] = await db.query('SELECT Player_ID, Name, Role, Base_Price, Country, PlayerTier, Status FROM Players');
+
     res.status(200).json(rows);
   } catch (error) {
     console.error('Error fetching players:', error);

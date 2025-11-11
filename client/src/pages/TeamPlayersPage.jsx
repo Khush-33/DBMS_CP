@@ -100,8 +100,8 @@ const TeamPlayersPage = () => {
               </select>
             </div>
             <div className="group">
-              <button onClick={() => { if(selectedTeam) { setSelectedTeam(selectedTeam); } }} className="btn-accent">Apply</button>
-              <button onClick={() => { setSelectedTeam(''); setSquad([]); }} className="btn-outline">Reset</button>
+              <button onClick={() => { if(selectedTeam) { setSelectedTeam(selectedTeam); } }} className="btn btn-apply">Apply</button>
+              <button onClick={() => { setSelectedTeam(''); setSquad([]); }} className="btn btn-outline">Reset</button>
             </div>
           </div>
         </div>

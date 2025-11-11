@@ -153,7 +153,78 @@ const createViews = async () => {
             LEFT JOIN
                 Player_Stats PS ON P.Player_ID = PS.Player_ID AND PS.Season = 2025`);
 
-        console.log('Database views ensured: SoldPlayerDetails, TeamBudgetSummary, PlayerPerformanceSummary');
+        // Ensure analytics columns exist before creating advanced views
+        try {
+            // Players.PlayerTier
+            const [[ptCol]] = await db.query(`
+                SELECT COUNT(1) AS cnt FROM information_schema.columns
+                WHERE table_schema = DATABASE() AND table_name = 'Players' AND column_name = 'PlayerTier'
+            `);
+            if (!ptCol || ptCol.cnt === 0) {
+                await db.query("ALTER TABLE Players ADD COLUMN PlayerTier ENUM('Marquee','Capped','Uncapped') NOT NULL DEFAULT 'Uncapped' AFTER Country");
+                await db.query("UPDATE Players SET PlayerTier = 'Marquee' WHERE Name IN ('Virat Kohli','Rohit Sharma','Pat Cummins','Jos Buttler')");
+            }
+        } catch (e) {
+            console.error('PlayerTier ensure failed:', e.message || e);
+        }
+
+        try {
+            // Player_Stats.Balls_Faced & Overs_Bowled
+            const [[bf]] = await db.query(`
+                SELECT COUNT(1) AS cnt FROM information_schema.columns
+                WHERE table_schema = DATABASE() AND table_name = 'Player_Stats' AND column_name = 'Balls_Faced'
+            `);
+            if (!bf || bf.cnt === 0) {
+                await db.query("ALTER TABLE Player_Stats ADD COLUMN Balls_Faced INT DEFAULT 0 AFTER Runs");
+            }
+            const [[ob]] = await db.query(`
+                SELECT COUNT(1) AS cnt FROM information_schema.columns
+                WHERE table_schema = DATABASE() AND table_name = 'Player_Stats' AND column_name = 'Overs_Bowled'
+            `);
+            if (!ob || ob.cnt === 0) {
+                await db.query("ALTER TABLE Player_Stats ADD COLUMN Overs_Bowled DECIMAL(5,1) DEFAULT 0.0 AFTER Wickets");
+            }
+        } catch (e) {
+            console.error('Player_Stats columns ensure failed:', e.message || e);
+        }
+
+        // View 4: PlayerCareerSummaryView (uses new analytics columns)
+        await db.query(`CREATE OR REPLACE VIEW PlayerCareerSummaryView AS
+            SELECT
+                P.Player_ID,
+                P.Name,
+                P.Role,
+                P.Country,
+                P.PlayerTier,
+                COUNT(PS.Season) AS Seasons_Played,
+                SUM(PS.Matches_Played) AS Career_Matches,
+                SUM(PS.Runs) AS Career_Runs,
+                SUM(PS.Balls_Faced) AS Career_Balls_Faced,
+                SUM(PS.Wickets) AS Career_Wickets,
+                SUM(PS.Overs_Bowled) AS Career_Overs_Bowled,
+                (SUM(PS.Runs) / SUM(CASE WHEN PS.Balls_Faced = 0 THEN 1 ELSE PS.Balls_Faced END)) * 100 AS Career_Strike_Rate,
+                (SUM(PS.Economy * PS.Overs_Bowled) / SUM(CASE WHEN PS.Overs_Bowled = 0 THEN 1 ELSE PS.Overs_Bowled END)) AS Career_Economy_Rate
+            FROM Players P
+            LEFT JOIN Player_Stats PS ON P.Player_ID = PS.Player_ID
+            GROUP BY P.Player_ID, P.Name, P.Role, P.Country, P.PlayerTier`);
+
+        // View 5: v_BiddingHistory for simpler frontend queries
+        await db.query(`CREATE OR REPLACE VIEW v_BiddingHistory AS
+            SELECT 
+                B.Bid_ID,
+                B.Auction_ID,
+                P.Player_ID,
+                P.Name AS Player_Name,
+                T.Team_ID,
+                T.Team_Name AS Team_Name,
+                B.Bid_Amount,
+                B.Bid_Time
+            FROM Bids B
+            JOIN Players P ON B.Player_ID = P.Player_ID
+            JOIN Teams T ON B.Team_ID = T.Team_ID
+            ORDER BY B.Bid_Time DESC`);
+
+        console.log('Database views ensured: SoldPlayerDetails, TeamBudgetSummary, PlayerPerformanceSummary, PlayerCareerSummaryView, v_BiddingHistory');
     } catch (error) {
         console.error('Error creating database views:', error);
     }
@@ -300,6 +371,13 @@ const sellPlayer = async () => {
 
             await db.query("UPDATE Players SET Status = 'Sold' WHERE Player_ID = ?", [auctionState.currentPlayer.id]);
 
+            // Deduct budget in DB only at final sale price
+            await db.query(
+                'UPDATE Teams SET Budget_Remaining = Budget_Remaining - ? WHERE Team_ID = ?',
+                [auctionState.currentBid, auctionState.highestBidderId]
+            );
+
+            // Reflect deduction in in-memory cache
             const winningTeam = teamsData.find(t => t.id === auctionState.highestBidderId);
             if (winningTeam) winningTeam.budget -= auctionState.currentBid;
 
@@ -466,8 +544,10 @@ server.listen(PORT, async () => {
     const initializeAuth = require('./config/auth');
     const initializeStoredProcedures = require('./config/stored_procedures');
     const initializeTriggers = require('./config/triggers');
+    const runSafeMigrations = require('./config/migrations');
     await initializeAuth();
     await initializeStoredProcedures();
+    await runSafeMigrations();
     await initializeTriggers();
     await createViews();
     await ensureBasePriceDefault();
